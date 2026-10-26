@@ -4,7 +4,7 @@ import json
 import os
 
 # Configuración de la página
-st.set_page_config(page_title="Derivative Arcade", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="Derivative F1 Grand Prix", page_icon="🏎️", layout="centered")
 
 DATA_FILE = "users_progress.json"
 
@@ -33,13 +33,46 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
+# Estado del Minijuego de F1 (7 Retos de derivadas en un punto)
+if "f1_game" not in st.session_state:
+    st.session_state.f1_game = {
+        "lap": 1,
+        "max_laps": 7,
+        "lives": 3,
+        "speed": 180,
+        "func_text": "x²",
+        "x_point": 3,
+        "correct_ans": 6,
+        "options": [6, 4, 9]
+    }
+
+def generate_f1_challenge():
+    # Banco de 7 retos de derivadas en un punto para la carrera de F1
+    pool = [
+        ("x²", 3, 6, [6, 4, 9]),
+        ("x³", 2, 12, [12, 8, 6]),
+        ("5x", 4, 5, [5, 20, 10]),
+        ("x³ - 3x", 2, 9, [9, 6, 12]),
+        ("sin(x)", 0, 1, [1, 0, -1]),
+        ("2x² + 1", 3, 12, [12, 18, 9]),
+        ("x⁴", 1, 4, [4, 1, 3])
+    ]
+    # Seleccionar según la vuelta actual (hasta 7)
+    lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
+    f_txt, x_pt, corr, opts = pool[lap_idx]
+    random.shuffle(opts)
+    st.session_state.f1_game["func_text"] = f_txt
+    st.session_state.f1_game["x_point"] = x_pt
+    st.session_state.f1_game["correct_ans"] = corr
+    st.session_state.f1_game["options"] = opts
+
 # ================= PANTALLA 0: APODO =================
 if st.session_state.current_user is None:
-    st.markdown("## 🕹️ DERIVATIVE ARCADE PRO")
-    st.write("Introduce tu apodo para entrar al salón recreativo de matemáticas:")
-    nickname = st.text_input("Tu apodo:")
+    st.markdown("## 🏎️ DERIVATIVE F1 GRAND PRIX")
+    st.write("Introduce tu apodo de piloto para entrar al mundial de cálculo:")
+    nickname = st.text_input("Tu apodo de Piloto:")
     
-    if st.button("🚀 ¡Insert Coin (Empezar)!", use_container_width=True):
+    if st.button("🏁 ¡Arrancar Motor (Empezar)!", use_container_width=True):
         if nickname.strip() == "":
             st.warning("Escribe un apodo válido.")
         else:
@@ -56,8 +89,8 @@ else:
 
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
     with col1:
-        st.markdown(f"👤 `{st.session_state.current_user}`")
-        if st.button("🔄 Cambiar"):
+        st.markdown(f"🏎️ Piloto: `{st.session_state.current_user}`")
+        if st.button("🔄 Cambiar Piloto"):
             st.session_state.current_user = None
             st.session_state.screen = "login"
             st.rerun()
@@ -74,9 +107,9 @@ else:
 
     # ================= MAPA DE MUNDOS =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Salón Recreativo - Mapa de Mundos")
+        st.markdown("## 🗺️ Circuito Mundial - Mapa de Fases")
         worlds = [
-            (1, "Fase 1: 🟡 Laberinto Pac-Man (Movimiento Real)"),
+            (1, "Fase 1: 🏎️ Gran Premio F1 (7 Vueltas de Derivadas en un Punto)"),
             (2, "Fase 2: 🎈 Fragua Polinómica"),
             (3, "Fase 3: 🎯 Bosque Trascendente"),
             (4, "Fase 4: 📦 Torre de Productos"),
@@ -100,132 +133,83 @@ else:
     # ================= ZONA DE JUEGO =================
     elif st.session_state.screen == "game":
         b = st.session_state.active_block
-        st.markdown(f"## 🕹️ Arcade - Fase 0{b}")
+        st.markdown(f"## 🏁 Circuito Activo - Fase 0{b}")
         if st.button("⬅️ Volver al Mapa"):
             st.session_state.screen = "map"
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: LABERINTO PAC-MAN INTERACTIVO EN HTML5/JS
+        # MUNDO 1: CARRERA DE F1 (7 DERIVADAS EN UN PUNTO)
         if b == 1:
-            st.subheader("🟡 Minijuego: Pac-Man Laberinto de Derivadas")
-            st.write("Usa los botones o muévete por el laberinto para guiar al comecocos hacia la pastilla con la **derivada correcta** y esquivar a los fantasmas.")
-
-            # Componente HTML / Canvas interactivo embebido en Streamlit
-            pacman_html = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <style>
-              body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; }
-              canvas { background-color: #0f172a; border: 3px solid #38bdf8; border-radius: 10px; box-shadow: 0 0 20px rgba(56,189,248,0.3); }
-              .btn-control { background-color: #2563eb; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
-              .btn-control:hover { background-color: #1d4ed8; }
-            </style>
-            </head>
-            <body>
-              <h3 id="question" style="color: #fbbf24; margin: 5px;">Reto: Derivada de f(x) = x²</h3>
-              <canvas id="gameCanvas" width="400" height="250"></canvas>
-              <div>
-                <button class="btn-control" onclick="move('UP')">⬆️ Arriba</button><br>
-                <button class="btn-control" onclick="move('LEFT')">⬅️ Izda</button>
-                <button class="btn-control" onclick="move('RIGHT')">➡️ Dcha</button><br>
-                <button class="btn-control" onclick="move('DOWN')">⬇️ Abajo</button>
-              </div>
-              <p id="status" style="color: #38bdf8; font-weight: bold;"></p>
-
-            <script>
-              const canvas = document.getElementById("gameCanvas");
-              const ctx = canvas.getContext("2d");
-
-              let pacman = { x: 50, y: 125, size: 15, speed: 15 };
-              let ghost = { x: 330, y: 125, size: 15, speed: 2 };
-              let targetPill = { x: 330, y: 60, text: "2x", correct: true };
-              let wrongPill = { x: 330, y: 190, text: "x²", correct: false };
-              let score = 0;
-
-              function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Dibujar Pasillos / Laberinto (líneas decorativas)
-                ctx.strokeStyle = "#1e293b";
-                ctx.lineWidth = 4;
-                ctx.strokeRect(20, 20, 360, 210);
-
-                // Dibujar Pac-Man
-                ctx.beginPath();
-                ctx.arc(pacman.x, pacman.y, pacman.size, 0.2 * Math.PI, 1.8 * Math.PI);
-                ctx.lineTo(pacman.x, pacman.y);
-                ctx.fillStyle = "#facc15";
-                ctx.fill();
-                ctx.closePath();
-
-                // Dibujar Fantasma del Error
-                ctx.beginPath();
-                ctx.arc(ghost.x, ghost.y, ghost.size, Math.PI, 0, false);
-                ctx.lineTo(ghost.x + ghost.size, ghost.y + ghost.size);
-                ctx.lineTo(ghost.x - ghost.size, ghost.y + ghost.size);
-                ctx.fillStyle = "#f43f5e";
-                ctx.fill();
-                ctx.closePath();
-
-                // Dibujar Pastilla Correcta (Ganadora)
-                ctx.beginPath();
-                ctx.arc(targetPill.x, targetPill.y, 18, 0, 2 * Math.PI);
-                ctx.fillStyle = "#4ade80";
-                ctx.fill();
-                ctx.fillStyle = "#020617";
-                ctx.font = "bold 14px sans-serif";
-                ctx.fillText(targetPill.text, targetPill.x - 10, targetPill.y + 5);
-
-                // Dibujar Pastilla Incorrecta (Trampa)
-                ctx.beginPath();
-                ctx.arc(wrongPill.x, wrongPill.y, 18, 0, 2 * Math.PI);
-                ctx.fillStyle = "#f87171";
-                ctx.fill();
-                ctx.fillStyle = "#020617";
-                ctx.fillText(wrongPill.text, wrongPill.x - 10, wrongPill.y + 5);
-              }
-
-              function move(dir) {
-                if (dir === 'UP' && pacman.y > 40) pacman.y -= pacman.speed;
-                if (dir === 'DOWN' && pacman.y < 210) pacman.y += pacman.speed;
-                if (dir === 'LEFT' && pacman.x > 40) pacman.x -= pacman.speed;
-                if (dir === 'RIGHT' && pacman.x < 360) pacman.x += pacman.speed;
-
-                checkCollision();
-                draw();
-              }
-
-              function checkCollision() {
-                // Comprobar si choca con la pastilla correcta
-                let distCorrect = Math.hypot(pacman.x - targetPill.x, pacman.y - targetPill.y);
-                let distWrong = Math.hypot(pacman.x - wrongPill.x, pacman.y - wrongPill.y);
-
-                if (distCorrect < 25) {
-                  document.getElementById("status").innerHTML = "🎉 ¡WAKA WAKA! ¡Te comiste la derivada correcta!";
-                  document.getElementById("status").style.color = "#4ade80";
-                  setTimeout(resetGame, 1500);
-                } else if (distWrong < 25) {
-                  document.getElementById("status").innerHTML = "❌ ¡CHOCASTE CON EL FANTASMA! Era la trampa.";
-                  document.getElementById("status").style.color = "#f43f5e";
-                  setTimeout(resetGame, 1500);
-                }
-              }
-
-              function resetGame() {
-                pacman.x = 50; pacman.y = 125;
-                document.getElementById("status").innerHTML = "";
-                draw();
-              }
-
-              draw();
-            </script>
-            </body>
-            </html>
-            """
+            st.subheader("🏎️ Gran Premio F1: Esquiva el Muro del Error")
             
-            st.components.v1.html(pacman_html, height=420)
+            # Panel de telemetría del monoplaza
+            lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
+            c_t1, c_t2, c_t3 = st.columns(3)
+            c_t1.markdown(f"### 🛡️ Vidas: {lives_display}")
+            c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
+            c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
+            
+            # Panel visual de la pista de F1 con HTML/CSS llamativo
+            f1_track_html = f"""
+            <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 20px; border: 3px solid #f43f5e; text-align: center; box-shadow: 0 0 25px rgba(244,63,94,0.3);">
+                <span style="background-color: #f43f5e; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🏁 TELEMETRÍA DE CARRERA</span>
+                <h2 style="color: #38bdf8; margin: 15px 0 5px 0; font-size: 26px;">Calcula: f'( {st.session_state.f1_game['x_point']} )</h2>
+                <p style="color: #fbbf24; font-size: 22px; font-weight: 900; margin: 0;">Función en pista: f(x) = {st.session_state.f1_game['func_text']}</p>
+                <hr style="border-color: #334155; margin: 15px 0;">
+                <div style="display: flex; justify-content: space-around; align-items: center;">
+                    <div style="background: #020617; padding: 10px 20px; border-radius: 10px; border: 1px solid #38bdf8;">🚗 <b>Coche F1 en pista</b></div>
+                    <div style="color: #4ade80; font-weight: bold; font-size: 16px;">⚡ ¡Elige el carril con la pendiente exacta!</div>
+                </div>
+            </div>
+            """
+            st.markdown(f1_track_html, unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # 3 Carriles de la autopista (Botones con los valores de las opciones)
+            opts = st.session_state.f1_game["options"]
+            c_lane1, c_lane2, c_lane3 = st.columns(3)
+            
+            lanes = [("🏎️ Carril Izquierdo", c_lane1), ("🏎️ Carril Central", c_lane2), ("🏎️ Carril Derecho", c_lane3)]
+            
+            for i, (lane_name, col) in enumerate(lanes):
+                opt_val = opts[i]
+                with col:
+                    if st.button(f"{lane_name}\n\n[ {opt_val} ]", key=f"f1_lane_{i}", use_container_width=True):
+                        if opt_val == st.session_state.f1_game["correct_ans"]:
+                            st.session_state.f1_game["speed"] += 30
+                            u_data["score"] += 250
+                            u_data["streak"] += 1
+                            u_data["corrects"] += 1
+                            
+                            # Avanzar de vuelta
+                            if st.session_state.f1_game["lap"] < 7:
+                                st.success(f"🎉 ¡Adelantamiento perfecto! Has entrado en la Vuelta {st.session_state.f1_game['lap'] + 1} / 7.")
+                                st.session_state.f1_game["lap"] += 1
+                                generate_f1_challenge()
+                            else:
+                                st.success("🏆 ¡GRAN PRIX GANADO! Has completado las 7 vueltas de derivadas con éxito total.")
+                                u_data["unlocked"] = 2
+                                save_users(st.session_state.users)
+                                st.session_state.screen = "map"
+                            
+                            save_users(st.session_state.users)
+                            st.rerun()
+                        else:
+                            st.session_state.f1_game["lives"] -= 1
+                            st.session_state.f1_game["speed"] = max(100, st.session_state.f1_game["speed"] - 40)
+                            u_data["streak"] = 0
+                            u_data["errors"] += 1
+                            save_users(st.session_state.users)
+                            
+                            if st.session_state.f1_game["lives"] <= 0:
+                                st.error("💥 ¡ACCIDENTE! Te has estrellado contra el muro del error. Fin de carrera.")
+                                st.session_state.f1_game["lives"] = 3
+                                st.session_state.f1_game["lap"] = 1
+                                st.session_state.screen = "map"
+                                st.rerun()
+                            else:
+                                st.error(f"❌ ¡CRASH! Carril incorrecto. Te quedan {st.session_state.f1_game['lives']} vidas.")
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
@@ -322,16 +306,16 @@ else:
 
     # ================= PANTALLA 3: INFORME =================
     elif st.session_state.screen == "summary":
-        st.markdown(f"## 📊 Informe Arcade de `{st.session_state.current_user}`")
+        st.markdown(f"## 📊 Informe de Piloto de `{st.session_state.current_user}`")
         col1, col2, col3 = st.columns(3)
         col1.metric("Puntuación Total", f"{u_data['score']} PTS")
-        col2.metric("Aciertos", u_data["corrects"])
-        col3.metric("Fallos", u_data["errors"])
+        col2.metric("Aciertos en Pista", u_data["corrects"])
+        col3.metric("Accidentes (Fallos)", u_data["errors"])
         st.markdown("---")
         if u_data["errors"] == 0:
-            st.success("🌟 ¡Puntuación perfecta en el salón recreativo! Listo para la EBAU.")
+            st.success("🌟 ¡Pole Position impecable! Cero accidentes. ¡Listo para arrasar en la EBAU!")
         else:
-            st.warning(f"⚠️ Has tenido {u_data['errors']} fallos. ¡Vuelve a insertar moneda y mejora tu récord!")
+            st.warning(f"⚠️ Has tenido {u_data['errors']} accidentes en pista. ¡Vuelve al circuito a entrenar los reflejos!")
             
         if st.button("🗺️ Volver al Mapa", use_container_width=True):
             st.session_state.screen = "map"

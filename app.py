@@ -116,7 +116,7 @@ else:
         st.info(f"📊 **Función:** `{func_name_str}` | **Punto x:** `{x_val:.2f}`  \n🎯 **Pendiente de la recta tangente ($m = f'(x)$):** `{deriv_val:.2f}`")
 
         st.markdown("---")
-        st.write("Selecciona una fase arcade (tienes **60 segundos** para completar tus 10 intentos):")
+        st.write("Selecciona una fase arcade (tienes **60 segundos** para completar tus intentos):")
         
         worlds = [
             (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista Arcade)"),
@@ -147,11 +147,11 @@ else:
         st.markdown("---")
 
         # -------------------------------------------------------------
-        # MUNDO 1: F1 ARCADE (Velocidad muy suave + 60 segundos)
+        # MUNDO 1: F1 ARCADE (Velocidad dinámica + 60 segundos)
         # -------------------------------------------------------------
         if b == 1:
             st.subheader("🏎️ Fase 1: Gran Premio F1 (Límite: 60 segundos)")
-            st.markdown("Velocidad muy pausada. ¡Calcula y responde con tiempo de sobra!")
+            st.markdown("Velocidad ágil. ¡Esquiva y responde con reflejos!")
 
             f1_code = """
             <!DOCTYPE html>
@@ -222,8 +222,8 @@ else:
               resetQ();
               function loop() {
                 if(!gameActive) return;
-                offset = (offset + 0.3) % 40;
-                oy += 0.3;
+                offset = (offset + 0.8) % 40;
+                oy += 0.7; // Ligeramente más rápido
                 if(oy >= 160 && oy <= 210) {
                   let chosen = q.opts[lane];
                   if(chosen === q.corr) {
@@ -253,11 +253,11 @@ else:
             st.components.v1.html(f1_code, height=400)
 
         # -------------------------------------------------------------
-        # MUNDO 2: FRAGUA POLINÓMICA (Velocidad muy suave + 60 segundos)
+        # MUNDO 2: FRAGUA POLINÓMICA (Velocidad dinámica + 60 segundos)
         # -------------------------------------------------------------
         elif b == 2:
             st.subheader("🎈 Fase 2: Fragua Polinómica (Límite: 60 segundos)")
-            st.markdown("Globos flotando muy despacio. ¡Pincha con calma los correctos!")
+            st.markdown("Globos flotando a velocidad ágil. ¡Pincha los correctos!")
 
             balloons_code = """
             <!DOCTYPE html>
@@ -299,7 +299,7 @@ else:
                 items = [];
                 let shuffled = [...lvl.opts].sort(() => Math.random() - 0.5);
                 for(let i=0; i<4; i++) {
-                  items.push({ text: shuffled[i], x: 75 + i*100, y: 240 + Math.random()*20, speed: 0.2 + Math.random()*0.2, radius: 32 });
+                  items.push({ text: shuffled[i], x: 75 + i*100, y: 240 + Math.random()*20, speed: 0.5 + Math.random()*0.3, radius: 32 });
                 }
               }
               spawnBalloons();
@@ -339,11 +339,11 @@ else:
             st.components.v1.html(balloons_code, height=370)
 
         # -------------------------------------------------------------
-        # MUNDO 3: TENIS TRASCENDENTE (Velocidad muy suave + 60 segundos)
+        # MUNDO 3: TENIS TRASCENDENTE (Velocidad dinámica + 60 segundos)
         # -------------------------------------------------------------
         elif b == 3:
             st.subheader("🎾 Fase 3: Tenis Trascendente (Límite: 60 segundos)")
-            st.markdown("Pelota a velocidad suave. Golpea con la pala las derivadas correctas.")
+            st.markdown("Pelota a velocidad ágil. Golpea con la pala las derivadas correctas.")
 
             tennis_code = """
             <!DOCTYPE html>
@@ -386,12 +386,12 @@ else:
                 { f: "2tan(x)", corr: "2sec²(x)", opts: ["2sec²(x)", "2csc²(x)", "2tan(x)"] }
               ];
               let currR = rounds[0];
-              let ball = { x: 225, y: 30, vx: 0.5, vy: 0.5, text: currR.corr };
+              let ball = { x: 225, y: 30, vx: 1.0, vy: 1.0, text: currR.corr };
 
               function resetBall() {
                 ball.x = Math.random() * 350 + 50;
                 ball.y = 30;
-                ball.vy = 0.5;
+                ball.vy = 1.0;
                 let choice = Math.random() < 0.5 ? currR.corr : currR.opts[Math.floor(Math.random() * currR.opts.length)];
                 ball.text = choice;
               }
@@ -447,11 +447,11 @@ else:
             st.components.v1.html(tennis_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 4: TETRIS DE PRODUCTOS (Velocidad muy suave + 60 segundos)
+        # MUNDO 4: TETRIS DE PRODUCTOS (Velocidad dinámica + 60 segundos)
         # -------------------------------------------------------------
         elif b == 4:
             st.subheader("🧱 Fase 4: Tetris de Productos (Límite: 60 segundos)")
-            st.markdown("Piezas cayendo muy despacio. Haz clic en la correcta.")
+            st.markdown("Piezas cayendo a velocidad ágil. Haz clic en la correcta.")
 
             tetris_code = """
             <!DOCTYPE html>
@@ -505,7 +505,7 @@ else:
                     x: 50 + i * 100,
                     y: -40 - Math.random() * 40,
                     shape: shapes[i % shapes.length],
-                    speed: 0.2 + Math.random() * 0.2
+                    speed: 0.5 + Math.random() * 0.3
                   });
                 }
               }
@@ -585,7 +585,7 @@ else:
         # -------------------------------------------------------------
         elif b == 5:
             st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (Límite: 60 segundos)")
-            st.markdown("Combate contra el jefe respondiendo con calma antes de que acabe el tiempo.")
+            st.markdown("Combate contra el jefe respondiendo con agilidad antes de que acabe el tiempo.")
 
             boss_code = """
             <!DOCTYPE html>

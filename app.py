@@ -47,7 +47,6 @@ if "f1_game" not in st.session_state:
     }
 
 def generate_f1_5lanes_challenge():
-    # Banco de 7 retos con 1 respuesta correcta y 4 distractores para los 5 carriles
     pool = [
         ("x²", 3, 6, [6, 2, 9, 4, 12]),
         ("x³", 2, 12, [12, 8, 6, 4, 16]),
@@ -117,17 +116,12 @@ else:
         
         for wid, wname in worlds:
             if wid <= u_data["unlocked"]:
-                if wid == 1:
-                    if st.button(f"🎮 Jugar -> {wname}", key=f"w_{wid}", use_container_width=True):
-                        st.session_state.active_block = wid
-                        st.session_state.screen = "game"
+                if st.button(f"🎮 Jugar -> {wname}", key=f"w_{wid}", use_container_width=True):
+                    st.session_state.active_block = wid
+                    st.session_state.screen = "game"
+                    if wid == 1:
                         generate_f1_5lanes_challenge()
-                        st.rerun()
-                else:
-                    if st.button(f"🎮 Jugar -> {wname}", key=f"w_{wid}", use_container_width=True):
-                        st.session_state.active_block = wid
-                        st.session_state.screen = "game"
-                        st.rerun()
+                    st.rerun()
             else:
                 st.button(f"🔒 {wname} (Bloqueado)", key=f"w_{wid}", disabled=True, use_container_width=True)
 
@@ -147,28 +141,25 @@ else:
 
         # MUNDO 1: CARRERA DE F1 CON 5 CARRILES Y 7 VUELTAS
         if b == 1:
-            st.subheader("🏎️ Gran Premio F1: Elije el Carril Correcto")
+            st.subheader("🏎️ Gran Premio F1: Elige el Carril Correcto")
             
-            # Panel de telemetría de carrera
             lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
             c_t1, c_t2, c_t3 = st.columns(3)
             c_t1.markdown(f"### 🛡️ Vidas: {lives_display}")
             c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
             c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
             
-            # Panel visual claro con la función y el punto a calcular
             f1_box = f"""
             <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 20px; border: 3px solid #38bdf8; text-align: center; box-shadow: 0 0 25px rgba(56,189,248,0.3);">
                 <span style="background-color: #38bdf8; color: #020617; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 14px;">🏁 ZONA DE CÁLCULO DE PISTA</span>
                 <h2 style="color: #f43f5e; margin: 15px 0 5px 0; font-size: 32px;">Calcula la derivada: f'( {st.session_state.f1_game['x_point']} )</h2>
                 <p style="color: #fbbf24; font-size: 26px; font-weight: 900; margin: 0;">Función: f(x) = {st.session_state.f1_game['func_text']}</p>
-                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Piensa con calma tu resultado y muévete al carril correspondiente abajo.</p>
+                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Piensa tu resultado con calma y muévete al carril correcto abajo.</p>
             </div>
             """
             st.markdown(f1_box, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # 5 CARRILES (5 Botones distribuidos equitativamente en columnas)
             opts = st.session_state.f1_game["options"]
             c1, c2, c3, c4, c5 = st.columns(5)
             lanes_ui = [("🚗 Carril 1", c1), ("🚗 Carril 2", c2), ("🚗 Carril 3", c3), ("🚗 Carril 4", c4), ("🚗 Carril 5", c5)]
@@ -208,3 +199,114 @@ else:
                                 st.session_state.screen = "map"
                                 st.rerun()
                             else:
+                                st.error(f"❌ ¡CRASH! Ese carril era incorrecto. Te quedan {st.session_state.f1_game['lives']} vidas.")
+
+        # MUNDO 2: POLINOMIOS
+        elif b == 2:
+            st.subheader("Bloque 2: Fragua Polinómica")
+            a, c_val = random.randint(2, 4), random.randint(1, 5)
+            correct_ans = f"{2*a}x + {c_val}"
+            options = [correct_ans, f"{a}x + {c_val}", f"{2*a}x²", f"{c_val}x"]
+            random.shuffle(options)
+            
+            st.markdown(f"### f(x) = {a}x² + {c_val}x")
+            for i, opt in enumerate(options):
+                if st.button(f"🎈 {opt}", key=f"p_opt_{i}", use_container_width=True):
+                    if opt == correct_ans:
+                        st.success("¡Correcto! +150 PTS")
+                        u_data["score"] += 150
+                        u_data["streak"] += 1
+                        u_data["corrects"] += 1
+                        if u_data["unlocked"] < 3: u_data["unlocked"] = 3
+                        save_users(st.session_state.users)
+                        st.rerun()
+                    else:
+                        st.error("¡Incorrecto!")
+                        u_data["streak"] = 0
+                        u_data["errors"] += 1
+                        save_users(st.session_state.users)
+
+        # MUNDO 3: TRASCENDENTES
+        elif b == 3:
+            st.subheader("Bloque 3: Bosque Trascendente")
+            st.markdown("### f(x) = 4sin(x)")
+            correct_t = "4cos(x)"
+            t_opts = ["4cos(x)", "-4sin(x)", "4sin(x)", "-4cos(x)"]
+            random.shuffle(t_opts)
+            for i, opt in enumerate(t_opts):
+                if st.button(f"🎯 {opt}", key=f"t_opt_{i}", use_container_width=True):
+                    if opt == correct_t:
+                        st.success("¡Correcto! +200 PTS")
+                        u_data["score"] += 200
+                        u_data["streak"] += 1
+                        u_data["corrects"] += 1
+                        if u_data["unlocked"] < 4: u_data["unlocked"] = 4
+                        save_users(st.session_state.users)
+                        st.rerun()
+                    else:
+                        st.error("¡Incorrecto!")
+                        u_data["streak"] = 0
+                        u_data["errors"] += 1
+                        save_users(st.session_state.users)
+
+        # MUNDO 4: PRODUCTOS
+        elif b == 4:
+            st.subheader("Bloque 4: Torre de Productos")
+            st.markdown("### f(x) = x² · sin(x)")
+            correct_pr = "2x·sin(x) + x²·cos(x)"
+            pr_opts = [correct_pr, "2x·cos(x)", "x²·sin(x)", "2x·sin(x) - x²·cos(x)"]
+            random.shuffle(pr_opts)
+            for i, opt in enumerate(pr_opts):
+                if st.button(f"📦 {opt}", key=f"pr_opt_{i}", use_container_width=True):
+                    if opt == correct_pr:
+                        st.success("¡Correcto! +250 PTS")
+                        u_data["score"] += 250
+                        u_data["streak"] += 1
+                        u_data["corrects"] += 1
+                        if u_data["unlocked"] < 5: u_data["unlocked"] = 5
+                        save_users(st.session_state.users)
+                        st.rerun()
+                    else:
+                        st.error("¡Incorrecto!")
+                        u_data["streak"] = 0
+                        u_data["errors"] += 1
+                        save_users(st.session_state.users)
+
+        # MUNDO 5: REGLA DE LA CADENA
+        elif b == 5:
+            st.subheader("Bloque 5: Jefe Final - Regla de la Cadena")
+            st.markdown("### f(x) = sin(4x²)")
+            correct_c = "cos(4x²) · (8x)"
+            c_opts = [correct_c, "cos(4x²)", "-sin(4x²) · 8x", "8x·sin(4x²)"]
+            random.shuffle(c_opts)
+            for i, opt in enumerate(c_opts):
+                if st.button(f"⚔️ {opt}", key=f"c_opt_{i}", use_container_width=True):
+                    if opt == correct_c:
+                        st.success("🎉 ¡VICTORIA! ¡Jefe derrotado! +500 PTS")
+                        u_data["score"] += 500
+                        u_data["streak"] += 1
+                        u_data["corrects"] += 1
+                        save_users(st.session_state.users)
+                        st.rerun()
+                    else:
+                        st.error("¡Ataque bloqueado!")
+                        u_data["streak"] = 0
+                        u_data["errors"] += 1
+                        save_users(st.session_state.users)
+
+    # ================= PANTALLA 3: INFORME =================
+    elif st.session_state.screen == "summary":
+        st.markdown(f"## 📊 Informe de Piloto de `{st.session_state.current_user}`")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Puntuación Total", f"{u_data['score']} PTS")
+        col2.metric("Aciertos en Pista", u_data["corrects"])
+        col3.metric("Accidentes", u_data["errors"])
+        st.markdown("---")
+        if u_data["errors"] == 0:
+            st.success("🌟 ¡Pole Position impecable! Cero accidentes. ¡Listo para arrasar en la EBAU!")
+        else:
+            st.warning(f"⚠️ Has tenido {u_data['errors']} accidentes en pista. ¡Vuelve al circuito a entrenar!")
+            
+        if st.button("🗺️ Volver al Mapa", use_container_width=True):
+            st.session_state.screen = "map"
+            st.rerun()

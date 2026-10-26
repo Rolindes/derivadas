@@ -72,7 +72,6 @@ else:
         func_choice = st.selectbox("Elige una función f(x):", ["x²", "x³", "sin(x)", "eˣ"])
         x_val = st.slider("Mueve el punto x en la curva:", -3.0, 3.0, 1.0, 0.1)
 
-        # Generar Gráfica con Matplotlib
         fig, ax = plt.subplots(figsize=(6, 3.5))
         fig.patch.set_facecolor('#0f172a')
         ax.set_facecolor('#1e293b')
@@ -85,8 +84,7 @@ else:
             func_name_str = "f(x) = x²"
         elif func_choice == "x³":
             y_vals = x_vals ** 3
-            y_val = x_vals ** 3
-            deriv_val = 3 * (x_vals ** 2)[0] # simple check
+            y_val = x_val ** 3
             deriv_val = 3 * (x_val ** 2)
             func_name_str = "f(x) = x³"
         elif func_choice == "sin(x)":
@@ -118,7 +116,7 @@ else:
         st.info(f"📊 **Función:** `{func_name_str}` | **Punto x:** `{x_val:.2f}`  \n🎯 **Pendiente de la recta tangente ($m = f'(x)$):** `{deriv_val:.2f}`")
 
         st.markdown("---")
-        st.write("Selecciona una fase arcade (límite de 30 segundos por partida):")
+        st.write("Selecciona una fase arcade (tienes **60 segundos** para completar tus 10 intentos):")
         
         worlds = [
             (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista Arcade)"),
@@ -149,11 +147,11 @@ else:
         st.markdown("---")
 
         # -------------------------------------------------------------
-        # MUNDO 1: F1 ARCADE (Velocidad reducida + 30 segundos)
+        # MUNDO 1: F1 ARCADE (Velocidad muy suave + 60 segundos)
         # -------------------------------------------------------------
         if b == 1:
-            st.subheader("🏎️ Fase 1: Gran Premio F1 (Límite: 30 segundos)")
-            st.markdown("Velocidad relajada. ¡Esquiva y responde correctamente antes de que acabe el tiempo!")
+            st.subheader("🏎️ Fase 1: Gran Premio F1 (Límite: 60 segundos)")
+            st.markdown("Velocidad muy pausada. ¡Calcula y responde con tiempo de sobra!")
 
             f1_code = """
             <!DOCTYPE html>
@@ -164,7 +162,7 @@ else:
               .btn { background: #2563eb; color: white; border: none; padding: 10px 16px; font-size: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 3px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">30</span>s | Pts: <span id="s">0</span></div>
+              <div style="font-size: 14px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">60</span>s | Pts: <span id="s">0</span></div>
               <div style="background: #1e293b; border: 2px solid #38bdf8; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #38bdf8; font-size: 12px; font-weight: bold;" id="ft">f(x) = x² | x = 3</div>
                 <div style="color: #f43f5e; font-size: 13px; font-weight: bold;" id="qt">Calcula f'(3)</div>
@@ -183,7 +181,7 @@ else:
               const canvas = document.getElementById("c");
               const ctx = canvas.getContext("2d");
               const lanes = [45, 135, 225, 315, 405];
-              let lane = 2, oy = -100, pts = 0, offset = 0, timeLeft = 30, gameActive = true;
+              let lane = 2, oy = -100, pts = 0, offset = 0, timeLeft = 60, gameActive = true;
               
               const timerInterval = setInterval(() => {
                 if(!gameActive) return;
@@ -191,7 +189,7 @@ else:
                 document.getElementById("timer").innerText = timeLeft;
                 if(timeLeft <= 0) {
                   gameActive = false;
-                  alert("⏰ ¡Tiempo agotado! Puntuación obtenida: " + pts);
+                  alert("⏰ ¡Tiempo agotado! Puntuación final: " + pts);
                 }
               }, 1000);
 
@@ -224,8 +222,8 @@ else:
               resetQ();
               function loop() {
                 if(!gameActive) return;
-                offset = (offset + 0.5) % 40;
-                oy += 0.4; // Velocidad ralentizada
+                offset = (offset + 0.3) % 40;
+                oy += 0.3;
                 if(oy >= 160 && oy <= 210) {
                   let chosen = q.opts[lane];
                   if(chosen === q.corr) {
@@ -255,11 +253,11 @@ else:
             st.components.v1.html(f1_code, height=400)
 
         # -------------------------------------------------------------
-        # MUNDO 2: FRAGUA POLINÓMICA (Velocidad reducida + 30 segundos)
+        # MUNDO 2: FRAGUA POLINÓMICA (Velocidad muy suave + 60 segundos)
         # -------------------------------------------------------------
         elif b == 2:
-            st.subheader("🎈 Fase 2: Fragua Polinómica (Límite: 30 segundos)")
-            st.markdown("Los globos suben de forma lenta. ¡Pincha los correctos!")
+            st.subheader("🎈 Fase 2: Fragua Polinómica (Límite: 60 segundos)")
+            st.markdown("Globos flotando muy despacio. ¡Pincha con calma los correctos!")
 
             balloons_code = """
             <!DOCTYPE html>
@@ -269,7 +267,7 @@ else:
               canvas { background: #0f172a; border: 3px solid #ec4899; border-radius: 10px; display: block; margin: 0 auto; cursor: pointer; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #ec4899; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">30</span>s | Puntos: <span id="bs">0</span></div>
+              <div style="font-size: 14px; color: #ec4899; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">60</span>s | Puntos: <span id="bs">0</span></div>
               <div style="background: #1e293b; border: 2px solid #ec4899; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ec4899; font-size: 14px; font-weight: bold;" id="bft">f(x) = 4x² + 5x</div>
               </div>
@@ -277,7 +275,7 @@ else:
             <script>
               const canvas = document.getElementById("bc");
               const ctx = canvas.getContext("2d");
-              let score = 0, timeLeft = 30, gameActive = true;
+              let score = 0, timeLeft = 60, gameActive = true;
 
               const timerInterval = setInterval(() => {
                 if(!gameActive) return;
@@ -285,7 +283,7 @@ else:
                 document.getElementById("timer").innerText = timeLeft;
                 if(timeLeft <= 0) {
                   gameActive = false;
-                  alert("⏰ ¡Tiempo agotado! Puntuación obtenida: " + score);
+                  alert("⏰ ¡Tiempo agotado! Puntuación final: " + score);
                 }
               }, 1000);
 
@@ -301,7 +299,7 @@ else:
                 items = [];
                 let shuffled = [...lvl.opts].sort(() => Math.random() - 0.5);
                 for(let i=0; i<4; i++) {
-                  items.push({ text: shuffled[i], x: 75 + i*100, y: 240 + Math.random()*20, speed: 0.3 + Math.random()*0.2, radius: 32 });
+                  items.push({ text: shuffled[i], x: 75 + i*100, y: 240 + Math.random()*20, speed: 0.2 + Math.random()*0.2, radius: 32 });
                 }
               }
               spawnBalloons();
@@ -325,7 +323,7 @@ else:
                 ctx.clearRect(0,0,450,240);
                 ctx.fillStyle = "#1e293b"; ctx.fillRect(15,0,420,240);
                 for(let item of items) {
-                  item.y -= item.speed; // Movimiento más lento
+                  item.y -= item.speed;
                   if(item.y < -30) item.y = 260;
                   ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2);
                   ctx.fillStyle = "#334155"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#64748b"; ctx.stroke();
@@ -341,10 +339,10 @@ else:
             st.components.v1.html(balloons_code, height=370)
 
         # -------------------------------------------------------------
-        # MUNDO 3: TENIS TRASCENDENTE (Velocidad reducida + 30 segundos)
+        # MUNDO 3: TENIS TRASCENDENTE (Velocidad muy suave + 60 segundos)
         # -------------------------------------------------------------
         elif b == 3:
-            st.subheader("🎾 Fase 3: Tenis Trascendente (Límite: 30 segundos)")
+            st.subheader("🎾 Fase 3: Tenis Trascendente (Límite: 60 segundos)")
             st.markdown("Pelota a velocidad suave. Golpea con la pala las derivadas correctas.")
 
             tennis_code = """
@@ -356,7 +354,7 @@ else:
               .btn-p { background: #059669; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">30</span>s | Pts: <span id="ts">0</span></div>
+              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">60</span>s | Pts: <span id="ts">0</span></div>
               <div style="background: #1e293b; border: 2px solid #10b981; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #10b981; font-size: 14px; font-weight: bold;" id="tft">f(x) = 4sin(x)</div>
                 <div style="color: white; font-size: 12px;">Golpea solo la derivada correcta</div>
@@ -369,7 +367,7 @@ else:
             <script>
               const canvas = document.getElementById("tc");
               const ctx = canvas.getContext("2d");
-              let score = 0, timeLeft = 30, gameActive = true;
+              let score = 0, timeLeft = 60, gameActive = true;
               let paddleX = 185, paddleWidth = 90, paddleY = 210;
 
               const timerInterval = setInterval(() => {
@@ -378,7 +376,7 @@ else:
                 document.getElementById("timer").innerText = timeLeft;
                 if(timeLeft <= 0) {
                   gameActive = false;
-                  alert("⏰ ¡Tiempo agotado! Puntuación obtenida: " + score);
+                  alert("⏰ ¡Tiempo agotado! Puntuación final: " + score);
                 }
               }, 1000);
               
@@ -388,12 +386,12 @@ else:
                 { f: "2tan(x)", corr: "2sec²(x)", opts: ["2sec²(x)", "2csc²(x)", "2tan(x)"] }
               ];
               let currR = rounds[0];
-              let ball = { x: 225, y: 30, vx: 0.7, vy: 0.7, text: currR.corr }; // Velocidad reducida
+              let ball = { x: 225, y: 30, vx: 0.5, vy: 0.5, text: currR.corr };
 
               function resetBall() {
                 ball.x = Math.random() * 350 + 50;
                 ball.y = 30;
-                ball.vy = 0.7;
+                ball.vy = 0.5;
                 let choice = Math.random() < 0.5 ? currR.corr : currR.opts[Math.floor(Math.random() * currR.opts.length)];
                 ball.text = choice;
               }
@@ -449,11 +447,11 @@ else:
             st.components.v1.html(tennis_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 4: TETRIS DE PRODUCTOS (Velocidad reducida + 30 segundos)
+        # MUNDO 4: TETRIS DE PRODUCTOS (Velocidad muy suave + 60 segundos)
         # -------------------------------------------------------------
         elif b == 4:
-            st.subheader("🧱 Fase 4: Tetris de Productos (Límite: 30 segundos)")
-            st.markdown("Piezas cayendo lentamente. Haz clic en la correcta.")
+            st.subheader("🧱 Fase 4: Tetris de Productos (Límite: 60 segundos)")
+            st.markdown("Piezas cayendo muy despacio. Haz clic en la correcta.")
 
             tetris_code = """
             <!DOCTYPE html>
@@ -464,7 +462,7 @@ else:
               .btn-tet { background: #d97706; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 4px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #f59e0b; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">30</span>s | Puntos: <span id="pts">0</span></div>
+              <div style="font-size: 14px; color: #f59e0b; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">60</span>s | Puntos: <span id="pts">0</span></div>
               <div style="background: #1e293b; border: 2px solid #f59e0b; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #f59e0b; font-size: 14px; font-weight: bold;" id="tfunc">f(x) = x² · sin(x)</div>
                 <div style="color: white; font-size: 12px;">Haz clic en la figura de Tetris correcta</div>
@@ -477,7 +475,7 @@ else:
             <script>
               const canvas = document.getElementById("tc");
               const ctx = canvas.getContext("2d");
-              let score = 0, timeLeft = 30, gameActive = true;
+              let score = 0, timeLeft = 60, gameActive = true;
 
               const timerInterval = setInterval(() => {
                 if(!gameActive) return;
@@ -485,7 +483,7 @@ else:
                 document.getElementById("timer").innerText = timeLeft;
                 if(timeLeft <= 0) {
                   gameActive = false;
-                  alert("⏰ ¡Tiempo agotado! Puntuación obtenida: " + score);
+                  alert("⏰ ¡Tiempo agotado! Puntuación final: " + score);
                 }
               }, 1000);
 
@@ -507,7 +505,7 @@ else:
                     x: 50 + i * 100,
                     y: -40 - Math.random() * 40,
                     shape: shapes[i % shapes.length],
-                    speed: 0.3 + Math.random() * 0.2 // Reducido
+                    speed: 0.2 + Math.random() * 0.2
                   });
                 }
               }
@@ -583,10 +581,10 @@ else:
             st.components.v1.html(tetris_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 5: JEFE FINAL REGLA DE LA CADENA (30 segundos)
+        # MUNDO 5: JEFE FINAL REGLA DE LA CADENA (60 segundos)
         # -------------------------------------------------------------
         elif b == 5:
-            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (Límite: 30 segundos)")
+            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (Límite: 60 segundos)")
             st.markdown("Combate contra el jefe respondiendo con calma antes de que acabe el tiempo.")
 
             boss_code = """
@@ -599,7 +597,7 @@ else:
               .btn-boss:hover { background: #b91c1c; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">30</span>s | Puntos: <span id="bpts">0</span></div>
+              <div style="font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px;">⏱️ Tiempo: <span id="timer">60</span>s | Puntos: <span id="bpts">0</span></div>
               <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ef4444; font-size: 14px; font-weight: bold;" id="bof">f(x) = sin(4x²)</div>
               </div>
@@ -608,7 +606,7 @@ else:
             <script>
               const canvas = document.getElementById("bc");
               const ctx = canvas.getContext("2d");
-              let bossScore = 0, timeLeft = 30, gameActive = true;
+              let bossScore = 0, timeLeft = 60, gameActive = true;
 
               const timerInterval = setInterval(() => {
                 if(!gameActive) return;
@@ -616,7 +614,7 @@ else:
                 document.getElementById("timer").innerText = timeLeft;
                 if(timeLeft <= 0) {
                   gameActive = false;
-                  alert("⏰ ¡Tiempo agotado! Puntuación obtenida contra el Jefe: " + bossScore);
+                  alert("⏰ ¡Tiempo agotado! Puntuación final contra el Jefe: " + bossScore);
                 }
               }, 1000);
 

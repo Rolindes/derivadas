@@ -36,6 +36,17 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
+# Generador aleatorio para el minijuego de francotirador si no existe
+if "sniper_challenge" not in st.session_state:
+    funcs_pool = [
+        ("x**3 - 3*x", "x³ - 3x", [-2, -1, 1, 2]),
+        ("x**2 - 4", "x² - 4", [-2, -1, 1, 2]),
+        ("2*x**3", "2x³", [-1, 1, 2])
+    ]
+    f_str, f_disp, points = random.choice(funcs_pool)
+    pt = random.choice(points)
+    st.session_state.sniper_challenge = {"func_str": f_str, "func_disp": f_disp, "x_target": pt}
+
 # ================= PANTALLA 0: IDENTIFICACIÓN POR APODO =================
 if st.session_state.current_user is None:
     st.markdown("## ⚡ DERIVATIVE ADVENTURE")
@@ -86,7 +97,7 @@ else:
         st.write("Selecciona una fase disponible para jugar y practicar derivadas:")
         
         worlds = [
-            (1, "Fase 1: Tangentes y Pendientes (Elige tu función y Francotirador)"),
+            (1, "Fase 1: Tangentes y Pendientes (Laboratorio y Francotirador)"),
             (2, "Fase 2: Fragua Polinómica (Minijuego de Globos)"),
             (3, "Fase 3: Bosque Trascendente (Disparo Láser)"),
             (4, "Fase 4: Torre de Productos y Cocientes"),
@@ -119,13 +130,13 @@ else:
             
         st.markdown("---")
 
-        # MUNDO 1: TANGENTES CON FUNCIÓN PERSONALIZADA
+        # MUNDO 1: TANGENTES (LABORATORIO + MINIJUEGO FRANCOTIRADOR VISUAL)
         if b == 1:
             st.subheader("Bloque 1: El Significado de la Derivada")
-            tab1, tab2 = st.tabs(["💡 Laboratorio Libre (Elige tu función)", "🎯 Minijuego Francotirador"])
+            tab1, tab2 = st.tabs(["💡 Laboratorio Libre (Elige tu función)", "🎯 Minijuego: Francotirador Tangente"])
             
             with tab1:
-                st.write("Escribe la función que quieras investigar (ejemplos: `x**3 - 3*x`, `x**2 - 4`, `sin(x)`):")
+                st.write("Escribe la función que quieras investigar:")
                 user_func_str = st.text_input("Función f(x):", value="x**3 - 3*x")
                 
                 try:
@@ -133,35 +144,26 @@ else:
                     f_expr = sp.sympify(user_func_str)
                     f_prime_expr = sp.diff(f_expr, x)
                     
-                    # Convertir a funciones numéricas de numpy
                     f_num = sp.lambdify(x, f_expr, 'numpy')
                     f_prime_num = sp.lambdify(x, f_prime_expr, 'numpy')
                     
                     x_val = st.slider("Posición X del punto de tangencia", -3.0, 3.0, 0.0, 0.05, key="s_custom")
-                    
-                    # Evaluar valor y pendiente
                     y_val = float(f_num(x_val))
                     slope = float(f_prime_num(x_val))
                     
-                    # Dibujar gráfica con Matplotlib
                     fig, ax = plt.subplots(figsize=(8, 4.5))
                     fig.patch.set_facecolor('#0f172a')
                     ax.set_facecolor('#020617')
                     
                     x_curve = np.linspace(-4, 4, 300)
-                    try:
-                        y_curve = f_num(x_curve)
-                        ax.plot(x_curve, y_curve, color='#22d3ee', linewidth=3, label=f"f(x) = {user_func_str}")
-                    except:
-                        pass
+                    y_curve = f_num(x_curve)
+                    ax.plot(x_curve, y_curve, color='#22d3ee', linewidth=3, label=f"f(x) = {user_func_str}")
                     
-                    # Recta tangente
                     x_tangent = np.linspace(x_val - 1.5, x_val + 1.5, 50)
                     y_tangent = slope * (x_tangent - x_val) + y_val
                     ax.plot(x_tangent, y_tangent, color='#f43f5e', linewidth=2.5, linestyle='--', label=f"Tangente (m={slope:.2f})")
                     
                     ax.scatter([x_val], [y_val], color='#f43f5e', s=100, zorder=5)
-                    
                     ax.axhline(0, color='#334155', linewidth=1)
                     ax.axvline(0, color='#334155', linewidth=1)
                     ax.set_xlim(-4, 4)
@@ -171,30 +173,72 @@ else:
                     ax.legend(loc='upper left', facecolor='#0f172a', edgecolor='none', labelcolor='white')
                     
                     st.pyplot(fig)
-                    st.success(f"📌 Derivada calculada automáticamente: $f'(x) = {f_prime_expr}$")
+                    st.success(f"📌 Derivada calculada: $f'(x) = {f_prime_expr}$")
                     st.info(f"📍 En x = `{x_val:.2f}` ➔ Pendiente instantánea: **{slope:.2f}**")
-                    
                 except Exception as e:
-                    st.error(f"⚠️ Revisa la sintaxis de la función. (Ejemplo correcto: `x**2 - 4` o `sin(x)`). Error: {e}")
+                    st.error(f"⚠️ Revisa la sintaxis de la función. Error: {e}")
                 
             with tab2:
-                st.write("### Reto: Clava la Pendiente")
-                target_x = 1.0
-                exact_slope = 3 * (target_x ** 2) - 3
-                st.write(f"Calcula la derivada de $f(x) = x^3 - 3x$ en el punto **x = {target_x}**.")
+                st.markdown("### 🎯 Minijuego Arcade: El Francotirador Tangente")
+                ch = st.session_state.sniper_challenge
                 
-                user_slope = st.slider("Ajusta la pendiente objetivo", -6.0, 6.0, 0.0, 0.5, key="sniper_s")
-                if st.button("🎯 Disparar con esta pendiente"):
+                x = sp.Symbol('x')
+                f_ch_expr = sp.sympify(ch["func_str"])
+                f_ch_prime = sp.diff(f_ch_expr, x)
+                
+                f_ch_num = sp.lambdify(x, f_ch_expr, 'numpy')
+                f_ch_prime_num = sp.lambdify(x, f_ch_prime, 'numpy')
+                
+                xt = ch["x_target"]
+                yt = float(f_ch_num(xt))
+                exact_slope = float(f_ch_prime_num(xt))
+                
+                st.write(f"Misión: Dada la función **f(x) = {ch['func_disp']}**, calcula la derivada y ajusta la pendiente del rayo láser para que encaje exacta en el punto **x = {xt}**.")
+                
+                # Slider interactivo que mueve el láser en tiempo real
+                user_slope = st.slider("Ajusta la pendiente del láser (m)", -10.0, 10.0, 0.0, 0.25, key="sniper_slider_interactive")
+                
+                # Gráfica interactiva del minijuego en tiempo real
+                fig_game, ax_game = plt.subplots(figsize=(8, 4.5))
+                fig_game.patch.set_facecolor('#0f172a')
+                ax_game.set_facecolor('#020617')
+                
+                xg = np.linspace(-4, 4, 300)
+                yg = f_ch_num(xg)
+                ax_game.plot(xg, yg, color='#38bdf8', linewidth=3, label=f"f(x) = {ch['func_disp']}")
+                
+                # Línea del usuario (el láser que intenta imitar la tangente)
+                x_laser = np.linspace(xt - 1.5, xt + 1.5, 50)
+                y_laser = user_slope * (x_laser - xt) + yt
+                ax_game.plot(x_laser, y_laser, color='#f43f5e' if abs(user_slope - exact_slope) > 0.5 else '#4ade80', linewidth=3, linestyle='-', label=f"Tu Láser (m={user_slope:.1f})")
+                
+                ax_game.scatter([xt], [yt], color='#fbbf24', s=150, zorder=5, marker='*', label="🎯 Blanco Objetivo")
+                ax_game.axhline(0, color='#334155', linewidth=1)
+                ax_game.axvline(0, color='#334155', linewidth=1)
+                ax_game.set_xlim(-4, 4)
+                ax_game.set_ylim(-12, 12)
+                ax_game.tick_params(colors='#94a3b8')
+                ax_game.grid(True, linestyle=':', alpha=0.3, color='#334155')
+                ax_game.legend(loc='upper left', facecolor='#0f172a', edgecolor='none', labelcolor='white')
+                
+                st.pyplot(fig_game)
+                
+                if st.button("🚀 ¡DISPARAR LÁSER TANGENTE!", use_container_width=True):
                     if abs(user_slope - exact_slope) < 0.5:
-                        st.success("🎉 ¡Impacto perfecto! Has clavado la pendiente exacta.")
+                        st.success("🎉 ¡IMPACTO PERFECTO! Has clavado la pendiente exacta.")
                         u_data["score"] += 200
                         u_data["streak"] += 1
                         u_data["corrects"] += 1
                         if u_data["unlocked"] < 2:
                             u_data["unlocked"] = 2
                         save_users(st.session_state.users)
+                        
+                        # Generar nuevo reto aleatorio
+                        funcs_pool = [("x**3 - 3*x", "x³ - 3x", [-2, -1, 1, 2]), ("x**2 - 4", "x² - 4", [-2, -1, 1, 2])]
+                        f_str, f_disp, points = random.choice(funcs_pool)
+                        st.session_state.sniper_challenge = {"func_str": f_str, "func_disp": f_disp, "x_target": random.choice(points)}
                     else:
-                        st.error("❌ Te has quedado lejos. ¡Prueba otra vez!")
+                        st.error(f"❌ ¡Has fallado el blanco! La pendiente correcta era exactamente `{exact_slope:.1f}`. ¡Vuelve a intentarlo!")
                         u_data["streak"] = 0
                         u_data["errors"] += 1
                         save_users(st.session_state.users)

@@ -123,11 +123,10 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 NATIVA DE 5 CARRILES
+        # MUNDO 1: CARRERA DE F1 CON PISTA VISUAL DE 5 CARRILES
         if b == 1:
             st.subheader("🏎️ Gran Premio F1: Autopista de Derivadas")
             
-            # Telemetría en vivo
             lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
             c_t1, c_t2, c_t3 = st.columns(3)
             c_t1.markdown(f"### 🛡️ Vidas: {lives_display}")
@@ -139,23 +138,38 @@ else:
             opts = st.session_state.f1_game['options']
             current_lane = st.session_state.f1_game["car_lane"]
 
-            # Reto principal de la vuelta
-            st.warning(f"🏁 **VUELTA {st.session_state.f1_game['lap']} / 7** ➔ Calcula la derivada: **f'( {x_pt} )** para **f(x) = {func}**")
+            # Panel del reto actual
+            st.info(f"🏁 **VUELTA {st.session_state.f1_game['lap']} / 7** ➔ Calcula la derivada: **f'( {x_pt} )** para **f(x) = {func}**")
 
-            st.markdown("### 🛣️ Pista de 5 Carriles")
-            
-            # Dibujar los 5 carriles en pantalla
-            lane_cols = st.columns(5)
+            # --- RENDERIZADO PROFESIONAL DE LA PISTA DE F1 ---
+            lanes_html = ""
             for i in range(5):
-                with lane_cols[i]:
-                    if i == current_lane:
-                        st.markdown("### 🏎️ **[ TÚ ]**")
-                        st.success(f"**[ {opts[i]} ]**")
-                    else:
-                        st.markdown(f"Carril {i+1}")
-                        st.info(f"[ {opts[i]} ]")
+                is_here = (i == current_lane)
+                if is_here:
+                    lanes_html += f"""
+                    <div style="flex: 1; background: #0284c7; border: 3px solid #facc15; padding: 15px 2px; text-align: center; border-radius: 8px; box-shadow: 0 0 15px rgba(250,204,21,0.6);">
+                        <div style="font-size: 22px; margin-bottom: 4px;">🏎️</div>
+                        <div style="color: #facc15; font-size: 11px; font-weight: bold; margin-bottom: 4px;">[ TÚ ]</div>
+                        <div style="color: white; font-size: 20px; font-weight: 900;">{opts[i]}</div>
+                    </div>
+                    """
+                else:
+                    lanes_html += f"""
+                    <div style="flex: 1; background: #1e293b; border: 2px dashed #475569; padding: 15px 2px; text-align: center; border-radius: 8px;">
+                        <div style="color: #64748b; font-size: 11px; margin-bottom: 4px;">Carril {i+1}</div>
+                        <div style="color: #cbd5e1; font-size: 18px; font-weight: bold; margin-top: 15px;">{opts[i]}</div>
+                    </div>
+                    """
 
-            st.markdown("<br>", unsafe_allow_html=True)
+            road_container = f"""
+            <div style="background-color: #090d16; padding: 20px; border-radius: 15px; border: 3px solid #334155; text-align: center; margin-bottom: 15px;">
+                <p style="color: #94a3b8; font-size: 11px; font-weight: bold; margin-bottom: 12px; letter-spacing: 2px;">🛣️ PISTA DE CARRERAS (5 CARRILES EN MOVIMIENTO)</p>
+                <div style="display: flex; justify-content: space-between; gap: 6px;">
+                    {lanes_html}
+                </div>
+            </div>
+            """
+            st.markdown(road_container, unsafe_allow_html=True)
 
             # Botones del volante para cambiar de carril físicamente
             col_mv1, col_mv2, col_mv3 = st.columns([1, 2, 1])

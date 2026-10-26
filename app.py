@@ -33,28 +33,29 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
-# Estado de la carrera de F1 (5 carriles, 7 vueltas)
+# Estado de la carrera de F1 (5 carriles, 7 vueltas, posición del coche del 0 al 4)
 if "f1_game" not in st.session_state:
     st.session_state.f1_game = {
         "lap": 1,
         "max_laps": 7,
         "lives": 3,
         "speed": 180,
+        "car_lane": 2, # Empieza en el carril central (índice 2)
         "func_text": "x²",
         "x_point": 3,
         "correct_ans": 6,
-        "options": [6, 2, 9, 4, 12]
+        "options": [2, 4, 6, 9, 12]
     }
 
 def generate_f1_5lanes_challenge():
     pool = [
-        ("x²", 3, 6, [6, 2, 9, 4, 12]),
-        ("x³", 2, 12, [12, 8, 6, 4, 16]),
-        ("5x", 4, 5, [5, 20, 10, 25, 0]),
-        ("x³ - 3x", 2, 9, [9, 6, 12, 3, 15]),
-        ("sin(x)", 0, 1, [1, 0, -1, 2, -2]),
-        ("2x² + 1", 3, 12, [12, 18, 9, 6, 24]),
-        ("x⁴", 1, 4, [4, 1, 3, 2, 8])
+        ("x²", 3, 6, [2, 4, 6, 9, 12]),
+        ("x³", 2, 12, [4, 6, 8, 12, 16]),
+        ("5x", 4, 5, [0, 5, 10, 20, 25]),
+        ("x³ - 3x", 2, 9, [3, 6, 9, 12, 15]),
+        ("sin(x)", 0, 1, [-2, -1, 0, 1, 2]),
+        ("2x² + 1", 3, 12, [6, 9, 12, 18, 24]),
+        ("x⁴", 1, 4, [1, 2, 3, 4, 8])
     ]
     lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
     f_txt, x_pt, corr, opts = pool[lap_idx]
@@ -63,6 +64,8 @@ def generate_f1_5lanes_challenge():
     st.session_state.f1_game["x_point"] = x_pt
     st.session_state.f1_game["correct_ans"] = corr
     st.session_state.f1_game["options"] = opts
+    # Asegurar que el coche esté en el centro al cambiar de vuelta
+    st.session_state.f1_game["car_lane"] = 2
 
 # ================= PANTALLA 0: APODO =================
 if st.session_state.current_user is None:
@@ -141,7 +144,7 @@ else:
 
         # MUNDO 1: CARRERA DE F1 CON 5 CARRILES Y 7 VUELTAS
         if b == 1:
-            st.subheader("🏎️ Gran Premio F1: Elige el Carril Correcto")
+            st.subheader("🏎️ Gran Premio F1: Conducción en Pista de 5 Carriles")
             
             lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
             c_t1, c_t2, c_t3 = st.columns(3)
@@ -154,20 +157,45 @@ else:
                 <span style="background-color: #38bdf8; color: #020617; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 14px;">🏁 ZONA DE CÁLCULO DE PISTA</span>
                 <h2 style="color: #f43f5e; margin: 15px 0 5px 0; font-size: 32px;">Calcula la derivada: f'( {st.session_state.f1_game['x_point']} )</h2>
                 <p style="color: #fbbf24; font-size: 26px; font-weight: 900; margin: 0;">Función: f(x) = {st.session_state.f1_game['func_text']}</p>
-                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Piensa tu resultado con calma y muévete al carril correcto abajo.</p>
+                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Usa los botones de dirección o selecciona el carril correspondiente.</p>
             </div>
             """
             st.markdown(f1_box, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # Controles de movimiento lateral estilo volante (Izquierda / Derecha)
+            col_mv1, col_mv2, col_mv3 = st.columns([1, 2, 1])
+            with col_mv1:
+                if st.button("⬅️ Mover Izquierda", use_container_width=True):
+                    if st.session_state.f1_game["car_lane"] > 0:
+                        st.session_state.f1_game["car_lane"] -= 1
+                        st.rerun()
+            with col_mv3:
+                if st.button("Mover Derecha ➡️", use_container_width=True):
+                    if st.session_state.f1_game["car_lane"] < 4:
+                        st.session_state.f1_game["car_lane"] += 1
+                        st.rerun()
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Renderizar los 5 carriles visuales con el coche indicado donde esté
             opts = st.session_state.f1_game["options"]
             c1, c2, c3, c4, c5 = st.columns(5)
-            lanes_ui = [("🚗 Carril 1", c1), ("🚗 Carril 2", c2), ("🚗 Carril 3", c3), ("🚗 Carril 4", c4), ("🚗 Carril 5", c5)]
+            lanes_ui = [c1, c2, c3, c4, c5]
             
-            for i, (lane_title, col) in enumerate(lanes_ui):
+            current_car_pos = st.session_state.f1_game["car_lane"]
+
+            for i, col in enumerate(lanes_ui):
                 val = opts[i]
                 with col:
-                    if st.button(f"{lane_title}\n\n**[ {val} ]**", key=f"lane_{i}", use_container_width=True):
+                    # Si el coche está en este carril, lo destacamos visualmente
+                    is_here = (i == current_car_pos)
+                    label = f"🏎️ **[TÚ]**\n\n**[ {val} ]**" if is_here else f"Carril {i+1}\n\n**[ {val} ]**"
+                    
+                    if st.button(label, key=f"lane_btn_{i}", use_container_width=True):
+                        # Al hacer clic en un carril, movemos el coche ahí y validamos
+                        st.session_state.f1_game["car_lane"] = i
+                        
                         if val == st.session_state.f1_game["correct_ans"]:
                             st.session_state.f1_game["speed"] += 20
                             u_data["score"] += 200
@@ -175,11 +203,11 @@ else:
                             u_data["corrects"] += 1
                             
                             if st.session_state.f1_game["lap"] < 7:
-                                st.success(f"🎉 ¡Increíble! Has superado la Vuelta {st.session_state.f1_game['lap']} / 7.")
+                                st.success(f"🎉 ¡Excelente! Vuelta {st.session_state.f1_game['lap']} / 7 superada.")
                                 st.session_state.f1_game["lap"] += 1
                                 generate_f1_5lanes_challenge()
                             else:
-                                st.success("🏆 ¡BANDERA A CUADROS! ¡Has ganado el Gran Premio completo de 7 vueltas con éxito!")
+                                st.success("🏆 ¡BANDERA A CUADROS! ¡Has ganado el Gran Premio completo de 7 vueltas!")
                                 u_data["unlocked"] = 2
                                 st.session_state.screen = "map"
                             
@@ -187,19 +215,18 @@ else:
                             st.rerun()
                         else:
                             st.session_state.f1_game["lives"] -= 1
-                            st.session_state.f1_game["speed"] = max(100, st.session_state.f1_game["speed"] - 30)
                             u_data["streak"] = 0
                             u_data["errors"] += 1
                             save_users(st.session_state.users)
                             
                             if st.session_state.f1_game["lives"] <= 0:
-                                st.error("💥 ¡ACCIDENTE TOTAL! Te has estrellado contra el muro del error. Reiniciando carrera.")
+                                st.error("💥 ¡CRASH! Te has quedado sin vidas. Reiniciando carrera.")
                                 st.session_state.f1_game["lives"] = 3
                                 st.session_state.f1_game["lap"] = 1
                                 st.session_state.screen = "map"
                                 st.rerun()
                             else:
-                                st.error(f"❌ ¡CRASH! Ese carril era incorrecto. Te quedan {st.session_state.f1_game['lives']} vidas.")
+                                st.error(f"❌ ¡Impacto en el muro! Te quedan {st.session_state.f1_game['lives']} vidas.")
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
@@ -303,7 +330,7 @@ else:
         col3.metric("Accidentes", u_data["errors"])
         st.markdown("---")
         if u_data["errors"] == 0:
-            st.success("🌟 ¡Pole Position impecable! Cero accidentes. ¡Listo para arrasar en la EBAU!")
+            st.success("🌟 ¡Pole Position impecable! Cero accidentes. ¡Listo para la EBAU!")
         else:
             st.warning(f"⚠️ Has tenido {u_data['errors']} accidentes en pista. ¡Vuelve al circuito a entrenar!")
             

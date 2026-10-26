@@ -56,7 +56,7 @@ else:
 
     st.markdown("---")
 
-    # ================= MAPA DE MUNDOS (TODOS DESBLOQUEADOS) =================
+    # ================= MAPA DE MUNDOS (ACCESO LIBRE) =================
     if st.session_state.screen == "map":
         st.markdown("## 🗺️ Circuito Mundial - Acceso Libre a Fases")
         st.write("Selecciona cualquier fase libremente para practicar:")
@@ -89,10 +89,10 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 LENTA, TÁCTIL Y UNIFORME
+        # MUNDO 1: CARRERA DE F1 LENTA, TÁCTIL Y CON OPCIONES BIEN REPARTIDAS EN LOS 5 CARRILES
         if b == 1:
             st.subheader("🏎️ Gran Premio F1: Conducción Suave")
-            st.markdown("La pista va **despacio** para darte tiempo a pensar. Puedes usar los botones táctiles/ratón, los botones de los carriles inferiores o las flechas.")
+            st.markdown("La pista va **despacio** y cada opción baja correctamente por su carril (C1 a C5). Usa los botones inferiores o haz clic en la pantalla.")
 
             f1_canvas_game = """
             <!DOCTYPE html>
@@ -102,7 +102,7 @@ else:
               body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; }
               canvas { background-color: #0f172a; border: 4px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 25px rgba(56,189,248,0.4); display: block; margin: 0 auto; cursor: pointer; }
               .controls { margin-top: 15px; }
-              .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 26px; font-size: 16px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+              .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 22px; font-size: 16px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
               .btn-move:hover { background-color: #1d4ed8; }
             </style>
             </head>
@@ -121,21 +121,22 @@ else:
               <canvas id="f1Canvas" width="450" height="280"></canvas>
 
               <div class="controls">
-                <button class="btn-move" onclick="moveCar(-1)">⬅️ Izquierda</button>
-                <button class="btn-move" onclick="setLaneByTouch(0)">C1</button>
-                <button class="btn-move" onclick="setLaneByTouch(1)">C2</button>
-                <button class="btn-move" onclick="setLaneByTouch(2)">C3</button>
-                <button class="btn-move" onclick="setLaneByTouch(3)">C4</button>
-                <button class="btn-move" onclick="setLaneByTouch(4)">C5</button>
-                <button class="btn-move" onclick="moveCar(1)">Derecha ➡️</button>
+                <button class="btn-move" onclick="moveCar(-1)">⬅️</button>
+                <button class="btn-move" onclick="setLane(0)">C1</button>
+                <button class="btn-move" onclick="setLane(1)">C2</button>
+                <button class="btn-move" onclick="setLane(2)">C3</button>
+                <button class="btn-move" onclick="setLane(3)">C4</button>
+                <button class="btn-move" onclick="setLane(4)">C5</button>
+                <button class="btn-move" onclick="moveCar(1)">➡️</button>
               </div>
 
             <script>
               const canvas = document.getElementById("f1Canvas");
               const ctx = canvas.getContext("2d");
 
+              // Cocentros X exactos para los 5 carriles dentro de un ancho de 450px
               const lanes = [45, 135, 225, 315, 405];
-              let currentLane = 2;
+              let currentLane = 2; // Carril central
               const carY = 200;
 
               let lap = 1;
@@ -144,7 +145,7 @@ else:
               let roadOffset = 0;
 
               let obstacleY = -120;
-              let speed = 0.8;
+              let speed = 0.7; // Velocidad lenta y cómoda
 
               const challenges = [
                 { f: "x²", x: 3, correct: 6, opts: [2, 4, 6, 9, 12] },
@@ -179,7 +180,7 @@ else:
                 if (currentLane > 4) currentLane = 4;
               }
 
-              function setLaneByTouch(laneIdx) {
+              function setLane(laneIdx) {
                 currentLane = laneIdx;
               }
 
@@ -200,6 +201,7 @@ else:
 
               function resetObstacles() {
                 obstacleY = -140;
+                // Mezclar orden de opciones para que cambien de carril aleatoriamente
                 currentCh.opts.sort(() => Math.random() - 0.5);
               }
 
@@ -211,6 +213,7 @@ else:
 
                 obstacleY += speed;
 
+                // Comprobar colisión cuando los bloques llegan a la altura del coche
                 if (obstacleY >= carY - 25 && obstacleY <= carY + 35) {
                   let winningLane = currentCh.opts.indexOf(currentCh.correct);
 
@@ -241,13 +244,16 @@ else:
               function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+                // Asfalto
                 ctx.fillStyle = "#1e293b";
                 ctx.fillRect(15, 0, 420, 280);
 
+                // Bordes de pista
                 ctx.fillStyle = "#ef4444";
                 ctx.fillRect(15, 0, 8, 280);
                 ctx.fillRect(427, 0, 8, 280);
 
+                // Líneas divisorias de carriles
                 ctx.strokeStyle = "#94a3b8";
                 ctx.lineWidth = 3;
                 ctx.setLineDash([20, 20]);
@@ -260,6 +266,7 @@ else:
                 }
                 ctx.setLineDash([]);
 
+                // Dibujar cada opción de respuesta en su carril correspondiente (lanes[i])
                 for(let i=0; i<5; i++) {
                   let val = currentCh.opts[i];
 
@@ -271,9 +278,10 @@ else:
 
                   ctx.fillStyle = "#ffffff";
                   ctx.font = "bold 18px sans-serif";
-                  ctx.fillText(val, lanes[i] - 10, obstacleY + 26);
+                  ctx.fillText(val, lanes[i] - 12, obstacleY + 26);
                 }
 
+                // Coche de F1 situado en el carril activo
                 let carX = lanes[currentLane];
                 ctx.fillStyle = "#facc15";
                 ctx.fillRect(carX - 14, carY, 28, 45);

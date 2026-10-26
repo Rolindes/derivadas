@@ -33,7 +33,7 @@ if st.session_state.current_user is None:
             clean_name = nickname.strip()
             st.session_state.current_user = clean_name
             if clean_name not in st.session_state.users:
-                st.session_state.users[clean_name] = {"score": 0, "streak": 0, "corrects": 0, "errors": 0, "unlocked": 1}
+                st.session_state.users[clean_name] = {"score": 0, "streak": 0, "corrects": 0, "errors": 0}
                 save_users(st.session_state.users)
             st.session_state.screen = "map"
             st.rerun()
@@ -56,38 +56,43 @@ else:
 
     st.markdown("---")
 
-    # ================= MAPA DE MUNDOS =================
+    # ================= MAPA DE MUNDOS (TODOS DESBLOQUEADOS) =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Circuito Mundial - Mapa de Fases")
+        st.markdown("## 🗺️ Circuito Mundial - Acceso Libre a Fases")
+        st.write("Selecciona cualquier fase libremente para practicar:")
+        
         worlds = [
-            (1, "Fase 1: 🏎️ Gran Premio F1 Arcade (Carretera Real en Movimiento)"),
+            (1, "Fase 1: 🏎️ Gran Premio F1 Arcade (Carretera Lenta y Táctil)"),
             (2, "Fase 2: 🎈 Fragua Polinómica"),
             (3, "Fase 3: 🎯 Bosque Trascendente"),
             (4, "Fase 4: 📦 Torre de Productos"),
             (5, "Fase 5: ⚔️ Jefe Final - Regla de la Cadena")
         ]
+        
         for wid, wname in worlds:
-            if wid <= u_data["unlocked"]:
-                if st.button(f"🎮 Jugar -> {wname}", key=f"w_{wid}", use_container_width=True):
-                    st.session_state.active_block = wid
-                    st.session_state.screen = "game"
-                    st.rerun()
-            else:
-                st.button(f"🔒 {wname} (Bloqueado)", key=f"w_{wid}", disabled=True, use_container_width=True)
+            if st.button(f"🎮 Entrar a -> {wname}", key=f"w_{wid}", use_container_width=True):
+                st.session_state.active_block = wid
+                st.session_state.screen = "game"
+                st.rerun()
+
+        st.markdown("---")
+        if st.button("📊 Ver Informe Final", use_container_width=True):
+            st.session_state.screen = "summary"
+            st.rerun()
 
     # ================= ZONA DE JUEGO =================
     elif st.session_state.screen == "game":
         b = st.session_state.active_block
         st.markdown(f"## 🏁 Circuito Activo - Fase 0{b}")
-        if st.button("⬅️ Volver al Mapa"):
+        if st.button("⬅️ Volver al Mapa de Fases"):
             st.session_state.screen = "map"
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 CON PANEL AMPLIADO Y CARRIL SELECCIONADO EN VERDE
+        # MUNDO 1: CARRERA DE F1 LENTA, TÁCTIL Y UNIFORME
         if b == 1:
-            st.subheader("🏎️ Gran Premio F1: Carretera en Movimiento Real")
-            st.markdown("El carril donde se sitúa tu coche se marca en **verde brillante**. Usa las flechas o botones para moverte y superar las 7 vueltas.")
+            st.subheader("🏎️ Gran Premio F1: Conducción Suave")
+            st.markdown("La pista va **despacio** para darte tiempo a pensar. Puedes usar los botones táctiles/ratón, los botones de los carriles inferiores o las flechas.")
 
             f1_canvas_game = """
             <!DOCTYPE html>
@@ -95,9 +100,9 @@ else:
             <head>
             <style>
               body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; }
-              canvas { background-color: #0f172a; border: 4px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 25px rgba(56,189,248,0.4); display: block; margin: 0 auto; }
+              canvas { background-color: #0f172a; border: 4px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 25px rgba(56,189,248,0.4); display: block; margin: 0 auto; cursor: pointer; }
               .controls { margin-top: 15px; }
-              .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+              .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 26px; font-size: 16px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
               .btn-move:hover { background-color: #1d4ed8; }
             </style>
             </head>
@@ -106,18 +111,22 @@ else:
                 Vuelta: <span id="lapDisplay">1</span> / 7 &nbsp;|&nbsp; Vidas: <span id="livesDisplay">❤️❤️❤️</span> &nbsp;|&nbsp; Puntos: <span id="scoreDisplay">0</span>
               </div>
               
-              <!-- PANEL AMPLIADO SIN CORTES PARA LA FUNCIÓN Y EL PUNTO -->
-              <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid #38bdf8; border-radius: 12px; padding: 15px; width: 440px; margin: 0 auto 10px auto; text-align: center; box-shadow: 0 0 15px rgba(56,189,248,0.2);">
+              <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid #38bdf8; border-radius: 12px; padding: 12px; width: 440px; margin: 0 auto 10px auto; text-align: center; box-shadow: 0 0 15px rgba(56,189,248,0.2);">
                 <div style="color: #38bdf8; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Reto Activo de Derivada</div>
-                <div id="funcText" style="color: #f8fafc; font-size: 24px; font-weight: 900; margin-top: 6px; word-break: break-all;">f(x) = x² &nbsp;|&nbsp; x = 3</div>
-                <div id="questionPrompt" style="color: #f43f5e; font-size: 16px; font-weight: bold; margin-top: 4px;">Calcula f'(3)</div>
-                <div id="statusAlert" style="color: #22c55e; font-size: 14px; font-weight: bold; margin-top: 6px; min-height: 20px;"></div>
+                <div id="funcText" style="color: #f8fafc; font-size: 22px; font-weight: 900; margin-top: 4px;">f(x) = x² &nbsp;|&nbsp; x = 3</div>
+                <div id="questionPrompt" style="color: #f43f5e; font-size: 15px; font-weight: bold; margin-top: 2px;">Calcula f'(3)</div>
+                <div id="statusAlert" style="color: #22c55e; font-size: 13px; font-weight: bold; margin-top: 4px; min-height: 18px;"></div>
               </div>
 
               <canvas id="f1Canvas" width="450" height="280"></canvas>
 
               <div class="controls">
                 <button class="btn-move" onclick="moveCar(-1)">⬅️ Izquierda</button>
+                <button class="btn-move" onclick="setLaneByTouch(0)">C1</button>
+                <button class="btn-move" onclick="setLaneByTouch(1)">C2</button>
+                <button class="btn-move" onclick="setLaneByTouch(2)">C3</button>
+                <button class="btn-move" onclick="setLaneByTouch(3)">C4</button>
+                <button class="btn-move" onclick="setLaneByTouch(4)">C5</button>
                 <button class="btn-move" onclick="moveCar(1)">Derecha ➡️</button>
               </div>
 
@@ -134,8 +143,8 @@ else:
               let score = 0;
               let roadOffset = 0;
 
-              let obstacleY = -100;
-              let speed = 1.6;
+              let obstacleY = -120;
+              let speed = 0.8;
 
               const challenges = [
                 { f: "x²", x: 3, correct: 6, opts: [2, 4, 6, 9, 12] },
@@ -170,20 +179,34 @@ else:
                 if (currentLane > 4) currentLane = 4;
               }
 
+              function setLaneByTouch(laneIdx) {
+                currentLane = laneIdx;
+              }
+
+              canvas.addEventListener('click', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                if (clickX < 90) currentLane = 0;
+                else if (clickX < 180) currentLane = 1;
+                else if (clickX < 270) currentLane = 2;
+                else if (clickX < 360) currentLane = 3;
+                else currentLane = 4;
+              });
+
               window.addEventListener('keydown', function(e) {
                 if (e.key === "ArrowLeft") moveCar(-1);
                 if (e.key === "ArrowRight") moveCar(1);
               });
 
               function resetObstacles() {
-                obstacleY = -100;
+                obstacleY = -140;
                 currentCh.opts.sort(() => Math.random() - 0.5);
               }
 
               resetObstacles();
 
               function update() {
-                roadOffset += speed * 2;
+                roadOffset += speed * 1.5;
                 if (roadOffset > 40) roadOffset = 0;
 
                 obstacleY += speed;
@@ -218,16 +241,13 @@ else:
               function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Asfalto
                 ctx.fillStyle = "#1e293b";
                 ctx.fillRect(15, 0, 420, 280);
 
-                // Bordes de pista
                 ctx.fillStyle = "#ef4444";
                 ctx.fillRect(15, 0, 8, 280);
                 ctx.fillRect(427, 0, 8, 280);
 
-                // Líneas de carriles en movimiento
                 ctx.strokeStyle = "#94a3b8";
                 ctx.lineWidth = 3;
                 ctx.setLineDash([20, 20]);
@@ -240,15 +260,13 @@ else:
                 }
                 ctx.setLineDash([]);
 
-                // Bloques bajando por carriles (El carril donde está el coche se marca en VERDE brillante)
                 for(let i=0; i<5; i++) {
                   let val = currentCh.opts[i];
-                  let isSelected = (i === currentLane);
 
-                  ctx.fillStyle = isSelected ? "#22c55e" : "#334155";
+                  ctx.fillStyle = "#334155";
                   ctx.fillRect(lanes[i] - 32, obstacleY, 64, 40);
-                  ctx.strokeStyle = isSelected ? "#facc15" : "#ffffff";
-                  ctx.lineWidth = isSelected ? 3 : 1;
+                  ctx.strokeStyle = "#64748b";
+                  ctx.lineWidth = 1;
                   ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 40);
 
                   ctx.fillStyle = "#ffffff";
@@ -256,14 +274,13 @@ else:
                   ctx.fillText(val, lanes[i] - 10, obstacleY + 26);
                 }
 
-                // Coche de F1
                 let carX = lanes[currentLane];
-                ctx.fillStyle = "#22c55e"; // Base verde para destacar tu posición
-                ctx.fillRect(carX - 18, carY - 5, 36, 60);
                 ctx.fillStyle = "#facc15";
                 ctx.fillRect(carX - 14, carY, 28, 45);
                 ctx.fillStyle = "#0f172a";
                 ctx.fillRect(carX - 9, carY + 10, 18, 16);
+                ctx.fillStyle = "#38bdf8";
+                ctx.fillRect(carX - 20, carY - 2, 40, 6);
                 ctx.fillStyle = "#ef4444";
                 ctx.fillRect(carX - 18, carY + 42, 36, 6);
               }
@@ -281,7 +298,7 @@ else:
             </html>
             """
 
-            st.components.v1.html(f1_canvas_game, height=525)
+            st.components.v1.html(f1_canvas_game, height=540)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
@@ -298,7 +315,6 @@ else:
                         u_data["score"] += 150
                         u_data["streak"] += 1
                         u_data["corrects"] += 1
-                        if u_data["unlocked"] < 3: u_data["unlocked"] = 3
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
@@ -321,7 +337,6 @@ else:
                         u_data["score"] += 200
                         u_data["streak"] += 1
                         u_data["corrects"] += 1
-                        if u_data["unlocked"] < 4: u_data["unlocked"] = 4
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
@@ -344,7 +359,6 @@ else:
                         u_data["score"] += 250
                         u_data["streak"] += 1
                         u_data["corrects"] += 1
-                        if u_data["unlocked"] < 5: u_data["unlocked"] = 5
                         save_users(st.session_state.users)
                         st.rerun()
                     else:

@@ -4,7 +4,7 @@ import json
 import os
 
 # Configuración de la página
-st.set_page_config(page_title="Derivative F1 Grand Prix", page_icon="🏎️", layout="centered")
+st.set_page_config(page_title="Derivative F1 Arcade", page_icon="🏎️", layout="centered")
 
 DATA_FILE = "users_progress.json"
 
@@ -33,48 +33,15 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
-# Estado del Minijuego de F1 (7 Retos de derivadas en un punto)
-if "f1_game" not in st.session_state:
-    st.session_state.f1_game = {
-        "lap": 1,
-        "max_laps": 7,
-        "lives": 3,
-        "speed": 180,
-        "func_text": "x²",
-        "x_point": 3,
-        "correct_ans": 6,
-        "options": [6, 4, 9]
-    }
-
-def generate_f1_challenge():
-    # Banco de 7 retos de derivadas en un punto para la carrera de F1
-    pool = [
-        ("x²", 3, 6, [6, 4, 9]),
-        ("x³", 2, 12, [12, 8, 6]),
-        ("5x", 4, 5, [5, 20, 10]),
-        ("x³ - 3x", 2, 9, [9, 6, 12]),
-        ("sin(x)", 0, 1, [1, 0, -1]),
-        ("2x² + 1", 3, 12, [12, 18, 9]),
-        ("x⁴", 1, 4, [4, 1, 3])
-    ]
-    # Seleccionar según la vuelta actual (hasta 7)
-    lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
-    f_txt, x_pt, corr, opts = pool[lap_idx]
-    random.shuffle(opts)
-    st.session_state.f1_game["func_text"] = f_txt
-    st.session_state.f1_game["x_point"] = x_pt
-    st.session_state.f1_game["correct_ans"] = corr
-    st.session_state.f1_game["options"] = opts
-
 # ================= PANTALLA 0: APODO =================
 if st.session_state.current_user is None:
-    st.markdown("## 🏎️ DERIVATIVE F1 GRAND PRIX")
-    st.write("Introduce tu apodo de piloto para entrar al mundial de cálculo:")
-    nickname = st.text_input("Tu apodo de Piloto:")
+    st.markdown("## 🏎️ DERIVATIVE F1 ARCADE")
+    st.write("Introduce tu apodo de piloto:")
+    nickname = st.text_input("Tu apodo:")
     
-    if st.button("🏁 ¡Arrancar Motor (Empezar)!", use_container_width=True):
+    if st.button("🏁 ¡Arrancar Motor!", use_container_width=True):
         if nickname.strip() == "":
-            st.warning("Escribe un apodo válido.")
+            st.warning("Escribe un apodo.")
         else:
             clean_name = nickname.strip()
             st.session_state.current_user = clean_name
@@ -89,8 +56,8 @@ else:
 
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
     with col1:
-        st.markdown(f"🏎️ Piloto: `{st.session_state.current_user}`")
-        if st.button("🔄 Cambiar Piloto"):
+        st.markdown(f"🏎️ `{st.session_state.current_user}`")
+        if st.button("🔄 Cambiar"):
             st.session_state.current_user = None
             st.session_state.screen = "login"
             st.rerun()
@@ -107,9 +74,9 @@ else:
 
     # ================= MAPA DE MUNDOS =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Circuito Mundial - Mapa de Fases")
+        st.markdown("## 🗺️ Salón Recreativo - Mapa de Fases")
         worlds = [
-            (1, "Fase 1: 🏎️ Gran Premio F1 (7 Vueltas de Derivadas en un Punto)"),
+            (1, "Fase 1: 🏎️ F1 Arcade Real (Movimiento y Carriles en Pista)"),
             (2, "Fase 2: 🎈 Fragua Polinómica"),
             (3, "Fase 3: 🎯 Bosque Trascendente"),
             (4, "Fase 4: 📦 Torre de Productos"),
@@ -139,77 +106,147 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 (7 DERIVADAS EN UN PUNTO)
+        # MUNDO 1: JUEGO DE F1 REAL (HTML5 CANVAS + ANIMACIÓN)
         if b == 1:
-            st.subheader("🏎️ Gran Premio F1: Esquiva el Muro del Error")
-            
-            # Panel de telemetría del monoplaza
-            lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
-            c_t1, c_t2, c_t3 = st.columns(3)
-            c_t1.markdown(f"### 🛡️ Vidas: {lives_display}")
-            c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
-            c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
-            
-            # Panel visual de la pista de F1 con HTML/CSS llamativo
-            f1_track_html = f"""
-            <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 20px; border: 3px solid #f43f5e; text-align: center; box-shadow: 0 0 25px rgba(244,63,94,0.3);">
-                <span style="background-color: #f43f5e; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🏁 TELEMETRÍA DE CARRERA</span>
-                <h2 style="color: #38bdf8; margin: 15px 0 5px 0; font-size: 26px;">Calcula: f'( {st.session_state.f1_game['x_point']} )</h2>
-                <p style="color: #fbbf24; font-size: 22px; font-weight: 900; margin: 0;">Función en pista: f(x) = {st.session_state.f1_game['func_text']}</p>
-                <hr style="border-color: #334155; margin: 15px 0;">
-                <div style="display: flex; justify-content: space-around; align-items: center;">
-                    <div style="background: #020617; padding: 10px 20px; border-radius: 10px; border: 1px solid #38bdf8;">🚗 <b>Coche F1 en pista</b></div>
-                    <div style="color: #4ade80; font-weight: bold; font-size: 16px;">⚡ ¡Elige el carril con la pendiente exacta!</div>
-                </div>
-            </div>
+            st.subheader("🏎️ Gran Premio F1: Conducción en Pista")
+            st.write("Usa los botones para mover el coche de Fórmula 1 entre los 3 carriles de la pista. ¡Esquiva los muros incorrectos y come el número de la derivada correcta!")
+
+            f1_arcade_html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <style>
+              body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; }
+              canvas { background-color: #0f172a; border: 3px solid #f43f5e; border-radius: 12px; box-shadow: 0 0 25px rgba(244,63,94,0.4); display: block; margin: 0 auto; }
+              .controls { margin-top: 15px; }
+              .btn-f1 { background-color: #f43f5e; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 0 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+              .btn-f1:hover { background-color: #e11d48; }
+            </style>
+            </head>
+            <body>
+              <div style="margin-bottom: 8px;">
+                <span style="color: #38bdf8; font-weight: bold; font-size: 16px;" id="questionText">Reto: f'(3) de f(x) = x²</span>
+              </div>
+              <canvas id="f1Canvas" width="400" height="300"></canvas>
+              <div class="controls">
+                <button class="btn-f1" onclick="changeLane(-1)">⬅️ Izquierda</button>
+                <button class="btn-f1" onclick="changeLane(1)">Derecha ➡️</button>
+              </div>
+              <p id="msg" style="color: #4ade80; font-weight: bold; margin-top: 10px; font-size: 15px;"></p>
+
+            <script>
+              const canvas = document.getElementById("f1Canvas");
+              const ctx = canvas.getContext("2d");
+
+              // Carriles X: 80 (Izda), 200 (Centro), 320 (Dcha)
+              const lanes = [80, 200, 320];
+              let currentLane = 1; // Empieza en el centro
+              let carY = 240;
+              
+              let score = 0;
+              let lives = 3;
+              let obstacleY = -100;
+              let obstacleLane = 0;
+              
+              let currentChallenge = {
+                func: "x²",
+                x: 3,
+                correct: 6,
+                options: [4, 6, 9] // Asignados a carriles 0, 1, 2
+              };
+
+              function setupNewChallenge() {
+                const pool = [
+                  { f: "x²", x: 3, c: 6, opts: [4, 6, 9] },
+                  { f: "x³", x: 2, c: 12, opts: [8, 12, 6] },
+                  { f: "5x", x: 4, c: 5, opts: [20, 5, 10] }
+                ];
+                let ch = pool[Math.floor(Math.random() * pool.length)];
+                currentChallenge.func = ch.f;
+                currentChallenge.x = ch.x;
+                currentChallenge.correct = ch.c;
+                currentChallenge.options = ch.opts;
+                
+                document.getElementById("questionText.innerHTML") = `Calcula f'(${ch.x}) para f(x) = ${ch.f}`;
+                obstacleY = -150;
+              }
+
+              function changeLane(dir) {
+                currentLane += dir;
+                if (currentLane < 0) currentLane = 0;
+                if (currentLane > 2) currentLane = 2;
+              }
+
+              function update() {
+                // Mover obstáculo hacia abajo (simula velocidad de F1)
+                obstacleY += 3;
+
+                if (obstacleY > 320) {
+                  // Comprobar si acertó el carril
+                  if (currentLane === currentChallenge.options.indexOf(currentChallenge.correct)) {
+                    score += 100;
+                    document.getElementById("msg").innerHTML = "🎉 ¡EXCELENTE ADELANTAMIENTO!";
+                    document.getElementById("msg").style.color = "#4ade80";
+                  } else {
+                    lives -= 1;
+                    document.getElementById("msg").innerHTML = "💥 ¡CRASH! Te estrellaste.";
+                    document.getElementById("msg").style.color = "#f43f5e";
+                  }
+                  setupNewChallenge();
+                }
+              }
+
+              function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Dibujar Pista de Carretera
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(30, 0, 340, 300);
+
+                // Líneas divisorias de carriles
+                ctx.strokeStyle = "#475569";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                ctx.moveTo(140, 0); ctx.lineTo(140, 300);
+                ctx.moveTo(260, 0); ctx.lineTo(260, 300);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Dibujar Opciones en los 3 carriles (obstáculos móviles)
+                for(let i=0; i<3; i++) {
+                  ctx.fillStyle = (currentChallenge.options[i] === currentChallenge.correct) ? "#22c55e" : "#ef4444";
+                  ctx.fillRect(lanes[i] - 35, obstacleY, 70, 40);
+                  ctx.fillStyle = "white";
+                  ctx.font = "bold 18px sans-serif";
+                  ctx.fillText(currentChallenge.options[i], lanes[i] - 12, obstacleY + 25);
+                }
+
+                // Dibujar Coche F1
+                ctx.fillStyle = "#facc15";
+                ctx.fillRect(lanes[currentLane] - 15, carY, 30, 45);
+                ctx.fillStyle = "#0f172a";
+                ctx.fillRect(lanes[currentLane] - 10, carY + 5, 20, 15); // Cabina
+
+                // HUD de Vidas y Puntos
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText("❤️ Vidas: " + lives, 40, 25);
+                ctx.fillText("🏆 Pts: " + score, 280, 25);
+              }
+
+              function loop() {
+                update();
+                draw();
+                requestAnimationFrame(loop);
+              }
+
+              loop();
+            </script>
+            </body>
+            </html>
             """
-            st.markdown(f1_track_html, unsafe_allow_html=True)
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # 3 Carriles de la autopista (Botones con los valores de las opciones)
-            opts = st.session_state.f1_game["options"]
-            c_lane1, c_lane2, c_lane3 = st.columns(3)
-            
-            lanes = [("🏎️ Carril Izquierdo", c_lane1), ("🏎️ Carril Central", c_lane2), ("🏎️ Carril Derecho", c_lane3)]
-            
-            for i, (lane_name, col) in enumerate(lanes):
-                opt_val = opts[i]
-                with col:
-                    if st.button(f"{lane_name}\n\n[ {opt_val} ]", key=f"f1_lane_{i}", use_container_width=True):
-                        if opt_val == st.session_state.f1_game["correct_ans"]:
-                            st.session_state.f1_game["speed"] += 30
-                            u_data["score"] += 250
-                            u_data["streak"] += 1
-                            u_data["corrects"] += 1
-                            
-                            # Avanzar de vuelta
-                            if st.session_state.f1_game["lap"] < 7:
-                                st.success(f"🎉 ¡Adelantamiento perfecto! Has entrado en la Vuelta {st.session_state.f1_game['lap'] + 1} / 7.")
-                                st.session_state.f1_game["lap"] += 1
-                                generate_f1_challenge()
-                            else:
-                                st.success("🏆 ¡GRAN PRIX GANADO! Has completado las 7 vueltas de derivadas con éxito total.")
-                                u_data["unlocked"] = 2
-                                save_users(st.session_state.users)
-                                st.session_state.screen = "map"
-                            
-                            save_users(st.session_state.users)
-                            st.rerun()
-                        else:
-                            st.session_state.f1_game["lives"] -= 1
-                            st.session_state.f1_game["speed"] = max(100, st.session_state.f1_game["speed"] - 40)
-                            u_data["streak"] = 0
-                            u_data["errors"] += 1
-                            save_users(st.session_state.users)
-                            
-                            if st.session_state.f1_game["lives"] <= 0:
-                                st.error("💥 ¡ACCIDENTE! Te has estrellado contra el muro del error. Fin de carrera.")
-                                st.session_state.f1_game["lives"] = 3
-                                st.session_state.f1_game["lap"] = 1
-                                st.session_state.screen = "map"
-                                st.rerun()
-                            else:
-                                st.error(f"❌ ¡CRASH! Carril incorrecto. Te quedan {st.session_state.f1_game['lives']} vidas.")
+            st.components.v1.html(f1_arcade_html, height=440)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
@@ -310,12 +347,12 @@ else:
         col1, col2, col3 = st.columns(3)
         col1.metric("Puntuación Total", f"{u_data['score']} PTS")
         col2.metric("Aciertos en Pista", u_data["corrects"])
-        col3.metric("Accidentes (Fallos)", u_data["errors"])
+        col3.metric("Accidentes", u_data["errors"])
         st.markdown("---")
         if u_data["errors"] == 0:
-            st.success("🌟 ¡Pole Position impecable! Cero accidentes. ¡Listo para arrasar en la EBAU!")
+            st.success("🌟 ¡Impecable! Cero accidentes. ¡Listo para la EBAU!")
         else:
-            st.warning(f"⚠️ Has tenido {u_data['errors']} accidentes en pista. ¡Vuelve al circuito a entrenar los reflejos!")
+            st.warning(f"⚠️ Has tenido {u_data['errors']} accidentes. ¡Vuelve al circuito!")
             
         if st.button("🗺️ Volver al Mapa", use_container_width=True):
             st.session_state.screen = "map"

@@ -58,14 +58,14 @@ else:
 
     # ================= MAPA DE MUNDOS =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Universo Arcade de Derivadas - Selecciona Fase")
+        st.markdown("## 🗺️ Universo Arcade de Derivadas - Supera 10 Funciones por Fase")
         
         worlds = [
-            (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista Arcade de Carriles)"),
-            (2, "Fase 2: 🎈 Fragua Polinómica (Cinta Transportadora de Globos)"),
-            (3, "Fase 3: 🎾 Tenis Trascendente (Juego de Pala y Rebote)"),
-            (4, "Fase 4: 🧱 Tetris de Productos (Piezas en L, T, I con Derivadas)"),
-            (5, "Fase 5: ⚔️ Jefe Final Regla de la Cadena (Combate Arcade Interactivo)")
+            (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista de 10 Funciones)"),
+            (2, "Fase 2: 🎈 Fragua Polinómica (Cinta de Globos sin Pistas)"),
+            (3, "Fase 3: 🎾 Tenis Trascendente (Pala y Rebote Neutral)"),
+            (4, "Fase 4: 🧱 Tetris de Productos (Atrapa la Pieza Correcta)"),
+            (5, "Fase 5: ⚔️ Jefe Final Regla de la Cadena (Combate de 10 Oleadas)")
         ]
         
         for wid, wname in worlds:
@@ -89,11 +89,11 @@ else:
         st.markdown("---")
 
         # -------------------------------------------------------------
-        # MUNDO 1: F1 ARCADE DE 5 CARRILES
+        # MUNDO 1: F1 ARCADE (10 FUNCIONES)
         # -------------------------------------------------------------
         if b == 1:
-            st.subheader("🏎️ Fase 1: Gran Premio F1 (Autopista)")
-            st.markdown("Atrapa los bloques correctos que bajan por los 5 carriles[cite: 16].")
+            st.subheader("🏎️ Fase 1: Gran Premio F1 (10 Funciones)")
+            st.markdown("Sin pistas de colores. Calcula la derivada de memoria y sitúa tu coche en el carril correcto.")
 
             f1_code = """
             <!DOCTYPE html>
@@ -104,7 +104,7 @@ else:
               .btn { background: #2563eb; color: white; border: none; padding: 10px 16px; font-size: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 3px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;">Vuelta: <span id="l">1</span>/7 | Pts: <span id="s">0</span></div>
+              <div style="font-size: 14px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;">Función: <span id="l">1</span>/10 | Pts: <span id="s">0</span></div>
               <div style="background: #1e293b; border: 2px solid #38bdf8; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #38bdf8; font-size: 12px; font-weight: bold;" id="ft">f(x) = x² | x = 3</div>
                 <div style="color: #f43f5e; font-size: 13px; font-weight: bold;" id="qt">Calcula f'(3)</div>
@@ -123,7 +123,7 @@ else:
               const canvas = document.getElementById("c");
               const ctx = canvas.getContext("2d");
               const lanes = [45, 135, 225, 315, 405];
-              let lane = 2, oy = -100, lap = 1, pts = 0, offset = 0;
+              let lane = 2, oy = -100, step = 1, pts = 0, offset = 0;
               const questions = [
                 { f: "x²", x: 3, corr: "6", opts: ["2", "4", "6", "9", "12"] },
                 { f: "x³", x: 2, corr: "12", opts: ["4", "8", "12", "16", "6"] },
@@ -131,11 +131,14 @@ else:
                 { f: "x³ - 3x", x: 2, corr: "9", opts: ["3", "6", "9", "12", "15"] },
                 { f: "sin(x)", x: 0, corr: "1", opts: ["-1", "0", "1", "2", "-2"] },
                 { f: "2x² + 1", x: 3, corr: "12", opts: ["6", "12", "18", "24", "9"] },
-                { f: "x⁴", x: 1, corr: "4", opts: ["1", "2", "3", "4", "8"] }
+                { f: "x⁴", x: 1, corr: "4", opts: ["1", "2", "3", "4", "8"] },
+                { f: "ln(x)", x: 1, corr: "1", opts: ["0", "1", "e", "1/2", "2"] },
+                { f: "eˣ", x: 0, corr: "1", opts: ["0", "1", "e", "e²", "inf"] },
+                { f: "cos(x)", x: 0, corr: "0", opts: ["-1", "0", "1", "pi", "2"] }
               ];
               let q = questions[0];
               function updateUI() {
-                document.getElementById("l").innerText = lap;
+                document.getElementById("l").innerText = step;
                 document.getElementById("s").innerText = pts;
                 document.getElementById("ft").innerHTML = `f(x) = ${q.f} | x = ${q.x}`;
                 document.getElementById("qt").innerText = `Calcula f'(${q.x})`;
@@ -154,12 +157,12 @@ else:
                 if(oy >= 160 && oy <= 210) {
                   let chosen = q.opts[lane];
                   if(chosen === q.corr) {
-                    pts += 200; lap++;
-                    if(lap > 7) { alert("🏆 ¡VICTORIA EN EL GRAN PREMIO!"); lap = 1; pts = 0; }
-                    q = questions[(lap-1)%questions.length];
+                    pts += 200; step++;
+                    if(step > 10) { alert("🏆 ¡VICTORIA! Has superado las 10 funciones."); step = 1; pts = 0; }
+                    q = questions[(step-1)%questions.length];
                     resetQ();
                   } else {
-                    alert("💥 ¡CHOQUE! Muro incorrecto.");
+                    alert("💥 ¡CHOQUE! Derivada incorrecta.");
                     resetQ();
                   }
                 }
@@ -169,9 +172,10 @@ else:
                 for(let i=1; i<5; i++) { ctx.beginPath(); ctx.moveTo(15+i*84,0); ctx.lineTo(15+i*84,240); ctx.stroke(); }
                 ctx.setLineDash([]);
                 for(let i=0; i<5; i++) {
+                  // Todos los bloques del mismo color neutro (sin pistas)
                   ctx.fillStyle = "#334155"; ctx.fillRect(lanes[i]-30, oy, 60, 35);
                   ctx.strokeStyle = "#64748b"; ctx.strokeRect(lanes[i]-30, oy, 60, 35);
-                  ctx.fillStyle = "white"; ctx.font = "bold 16px sans-serif"; ctx.fillText(q.opts[i], lanes[i]-10, oy+23);
+                  ctx.fillStyle = "white"; ctx.font = "bold 16px sans-serif"; ctx.fillText(q.opts[i], lanes[i]-12, oy+23);
                 }
                 let cx = lanes[lane];
                 ctx.fillStyle = "#facc15"; ctx.fillRect(cx-14, 180, 28, 38);
@@ -184,11 +188,11 @@ else:
             st.components.v1.html(f1_code, height=400)
 
         # -------------------------------------------------------------
-        # MUNDO 2: FRAGUA POLINÓMICA (Globos)
+        # MUNDO 2: FRAGUA POLINÓMICA (Globos Neutrales - 10 Funciones)
         # -------------------------------------------------------------
         elif b == 2:
-            st.subheader("🎈 Fase 2: Fragua Polinómica (Cinta de Globos)")
-            st.markdown("Pincha el globo correcto antes de que suba[cite: 16].")
+            st.subheader("🎈 Fase 2: Fragua Polinómica (10 Funciones)")
+            st.markdown("Los globos suben de la fragua. **Todos tienen el mismo color**: busca el tuyo de memoria y pincha el correcto antes de que suban.")
 
             balloons_code = """
             <!DOCTYPE html>
@@ -198,7 +202,7 @@ else:
               canvas { background: #0f172a; border: 3px solid #ec4899; border-radius: 10px; display: block; margin: 0 auto; cursor: pointer; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #ec4899; font-weight: bold; margin-bottom: 4px;">Puntos: <span id="bs">0</span></div>
+              <div style="font-size: 14px; color: #ec4899; font-weight: bold; margin-bottom: 4px;">Función: <span id="bl">1</span>/10 | Puntos: <span id="bs">0</span></div>
               <div style="background: #1e293b; border: 2px solid #ec4899; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ec4899; font-size: 14px; font-weight: bold;" id="bft">f(x) = 4x² + 5x</div>
               </div>
@@ -206,13 +210,20 @@ else:
             <script>
               const canvas = document.getElementById("bc");
               const ctx = canvas.getContext("2d");
-              let score = 0;
+              let score = 0, step = 1;
               const levels = [
                 { f: "4x² + 5x", corr: "8x + 5", opts: ["5x", "8x²", "4x + 5", "8x + 5"] },
                 { f: "3x³ - 2x", corr: "9x² - 2", opts: ["9x² - 2", "3x² - 2", "9x³", "x² - 2"] },
-                { f: "x⁴ + 6x", corr: "4x³ + 6", opts: ["4x³", "4x³ + 6", "x³ + 6", "4x⁴ + 6"] }
+                { f: "x⁴ + 6x", corr: "4x³ + 6", opts: ["4x³", "4x³ + 6", "x³ + 6", "4x⁴ + 6"] },
+                { f: "5x³", corr: "15x²", opts: ["5x²", "15x²", "3x²", "15x³"] },
+                { f: "2x⁵ - 4x", corr: "10x⁴ - 4", opts: ["10x⁴", "10x⁴ - 4", "2x⁴ - 4", "5x⁴ - 4"] },
+                { f: "7x² + 3", corr: "14x", opts: ["14x + 3", "14x", "7x", "7x + 3"] },
+                { f: "x⁶", corr: "6x⁵", opts: ["6x⁶", "x⁵", "6x⁵", "5x⁶"] },
+                { f: "9x + 2", corr: "9", opts: ["9x", "9", "2", "0"] },
+                { f: "8x³ + x", corr: "24x² + 1", opts: ["24x²", "24x² + 1", "8x² + 1", "24x³ + 1"] },
+                { f: "x⁵ - 5x²", corr: "5x⁴ - 10x", opts: ["5x⁴ - 10x", "5x⁴ - 5x", "x⁴ - 10x", "5x⁴"] }
               ];
-              let lvlIdx = 0, lvl = levels[0], items = [];
+              let lvl = levels[0], items = [];
               function spawnBalloons() {
                 items = [];
                 let shuffled = [...lvl.opts].sort(() => Math.random() - 0.5);
@@ -227,9 +238,9 @@ else:
                 for(let item of items) {
                   if(Math.hypot(mx - item.x, my - item.y) < item.radius) {
                     if(item.text === lvl.corr) {
-                      score += 150;
-                      lvlIdx = (lvlIdx + 1) % levels.length;
-                      lvl = levels[lvlIdx];
+                      score += 150; step++;
+                      if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas."); step = 1; score = 0; }
+                      lvl = levels[(step-1)%levels.length];
                       document.getElementById("bft").innerText = `f(x) = ${lvl.f}`;
                       spawnBalloons();
                     } else { alert("❌ ¡Incorrecto!"); spawnBalloons(); }
@@ -242,13 +253,14 @@ else:
                 for(let item of items) {
                   item.y -= item.speed;
                   if(item.y < -30) item.y = 260;
+                  // Todos los globos con el mismo color neutro (sin pistas de color)
                   ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2);
-                  ctx.fillStyle = item.text === lvl.corr ? "#db2777" : "#475569";
-                  ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#f472b6"; ctx.stroke();
+                  ctx.fillStyle = "#334155"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#64748b"; ctx.stroke();
                   ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
                   ctx.fillText(item.text, item.x, item.y + 4);
                 }
                 document.getElementById("bs").innerText = score;
+                document.getElementById("bl").innerText = step;
                 requestAnimationFrame(loop);
               }
               loop();
@@ -257,11 +269,11 @@ else:
             st.components.v1.html(balloons_code, height=370)
 
         # -------------------------------------------------------------
-        # MUNDO 3: TENIS TRASCENDENTE (Pala y Rebote tipo Pong)
+        # MUNDO 3: TENIS TRASCENDENTE (Pelota Neutra - 10 Funciones)
         # -------------------------------------------------------------
         elif b == 3:
-            st.subheader("🎾 Fase 3: Tenis Trascendente (Juego de Pala)")
-            st.markdown("Mueve la barra inferior con el ratón o los botones para golpear la pelota con la **derivada correcta**[cite: 16] y evitar que caiga al fondo.")
+            st.subheader("🎾 Fase 3: Tenis Trascendente (10 Funciones)")
+            st.markdown("La pelota que cae lleva una opción. **No hay colores que delaten la respuesta**: golpéala con tu pala solo si es la derivada correcta.")
 
             tennis_code = """
             <!DOCTYPE html>
@@ -272,10 +284,10 @@ else:
               .btn-p { background: #059669; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">Puntos: <span id="ts">0</span> | Vidas: <span id="tl">❤️❤️❤️</span></div>
+              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">Función: <span id="tlvl">1</span>/10 | Puntos: <span id="ts">0</span> | Vidas: <span id="tl">❤️❤️❤️</span></div>
               <div style="background: #1e293b; border: 2px solid #10b981; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #10b981; font-size: 14px; font-weight: bold;" id="tft">f(x) = 4sin(x)</div>
-                <div style="color: white; font-size: 12px;">Mueve la pala para atrapar la derivada correcta</div>
+                <div style="color: white; font-size: 12px;">Golpea solo la derivada correcta con la pala</div>
               </div>
               <canvas id="tc" width="450" height="240"></canvas>
               <div style="margin-top: 6px;">
@@ -285,22 +297,28 @@ else:
             <script>
               const canvas = document.getElementById("tc");
               const ctx = canvas.getContext("2d");
-              let score = 0, lives = 3;
+              let score = 0, lives = 3, step = 1;
               let paddleX = 185, paddleWidth = 90, paddleY = 210;
               
               const rounds = [
                 { f: "4sin(x)", corr: "4cos(x)", opts: ["4cos(x)", "-4sin(x)", "4sin(x)"] },
                 { f: "3cos(x)", corr: "-3sin(x)", opts: ["3sin(x)", "-3sin(x)", "3cos(x)"] },
-                { f: "2tan(x)", corr: "2sec²(x)", opts: ["2sec²(x)", "2csc²(x)", "2tan(x)"] }
+                { f: "2tan(x)", corr: "2sec²(x)", opts: ["2sec²(x)", "2csc²(x)", "2tan(x)"] },
+                { f: "sin(2x)", corr: "2cos(2x)", opts: ["cos(2x)", "2cos(2x)", "-2cos(2x)", "sin(2x)"] },
+                { f: "cos(3x)", corr: "-3sin(3x)", opts: ["3sin(3x)", "-3sin(3x)", "-cos(3x)", "3cos(3x)"] },
+                { f: "e^(2x)", corr: "2e^(2x)", opts: ["e^(2x)", "2e^(2x)", "2eˣ", "x·e^(2x)"] },
+                { f: "ln(3x)", corr: "1/x", opts: ["3/x", "1/x", "1/(3x)", "3"] },
+                { f: "5^x", corr: "5^x · ln(5)", opts: ["5^x", "5^x · ln(5)", "x·5^(x-1)", "ln(5)"] },
+                { f: "arcsin(x)", corr: "1/√(1-x²)", opts: ["1/√(1-x²)", "-1/√(1-x²)", "1/(1+x²)", "1/x"] },
+                { f: "arctan(x)", corr: "1/(1+x²)", opts: ["1/(1+x²)", "-1/(1+x²)", "1/√(1-x²)", "2x/(1+x²)"] }
               ];
-              let rIdx = 0, currR = rounds[0];
-              
-              let ball = { x: 225, y: 30, vx: 1.5, vy: 1.5, text: currR.corr };
+              let currR = rounds[0];
+              let ball = { x: 225, y: 30, vx: 1.2, vy: 1.2, text: currR.corr };
 
               function resetBall() {
                 ball.x = Math.random() * 350 + 50;
                 ball.y = 30;
-                ball.vy = 1.5;
+                ball.vy = 1.2;
                 let choice = Math.random() < 0.5 ? currR.corr : currR.opts[Math.floor(Math.random() * currR.opts.length)];
                 ball.text = choice;
               }
@@ -324,33 +342,38 @@ else:
 
                 if(ball.y >= paddleY - 10 && ball.y <= paddleY + 15 && ball.x >= paddleX && ball.x <= paddleX + paddleWidth) {
                   if(ball.text === currR.corr) {
-                    score += 200;
-                    rIdx = (rIdx + 1) % rounds.length;
-                    currR = rounds[rIdx];
+                    score += 200; step++;
+                    if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas en Tenis."); step = 1; score = 0; }
+                    currR = rounds[(step-1)%rounds.length];
                     document.getElementById("tft").innerText = `f(x) = ${currR.f}`;
                   } else {
                     lives--;
-                    alert("❌ ¡Derivada incorrecta en la pala!");
-                    if(lives <= 0) { alert("💥 ¡Game Over en Tenis!"); lives = 3; score = 0; }
+                    alert("❌ ¡Derivada incorrecta golpeada!");
+                    if(lives <= 0) { alert("💥 ¡Game Over!"); lives = 3; score = 0; step = 1; }
                   }
                   resetBall();
                 }
 
                 if(ball.y > 240) {
                   lives--;
-                  if(lives <= 0) { alert("💥 ¡Game Over!"); lives = 3; score = 0; }
+                  if(lives <= 0) { alert("💥 ¡Game Over!"); lives = 3; score = 0; step = 1; }
                   resetBall();
                 }
 
-                ctx.fillStyle = ball.text === currR.corr ? "#10b981" : "#ef4444";
-                ctx.beginPath(); ctx.arc(ball.x, ball.y, 20, 0, Math.PI*2); ctx.fill();
+                // Pelota con color neutro (sin pistas)
+                ctx.fillStyle = "#334155";
+                ctx.beginPath(); ctx.arc(ball.x, ball.y, 22, 0, Math.PI*2); ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = "#64748b"; ctx.stroke();
+
                 ctx.fillStyle = "white"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
                 ctx.fillText(ball.text, ball.x, ball.y + 4);
 
+                // Pala de tenis
                 ctx.fillStyle = "#facc15";
                 ctx.fillRect(paddleX, paddleY, paddleWidth, 12);
 
                 document.getElementById("ts").innerText = score;
+                document.getElementById("tlvl").innerText = step;
                 let h = ""; for(let i=0; i<lives; i++) h += "❤️";
                 document.getElementById("tl").innerText = h;
 
@@ -362,11 +385,11 @@ else:
             st.components.v1.html(tennis_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 4: TETRIS DE PRODUCTOS (Piezas geométricas en L, T, I)
+        # MUNDO 4: TETRIS DE PRODUCTOS (Piezas Geométricas Neutrales - 10 Funciones)
         # -------------------------------------------------------------
         elif b == 4:
-            st.subheader("🧱 Fase 4: Tetris de Productos (Figuras Geométricas)")
-            st.markdown("¡Caen piezas geométricas reales de **Tetris** (en L, I, T, Cuadrado) con derivadas impresas[cite: 16]! Haz clic sobre la correcta.")
+            st.subheader("🧱 Fase 4: Tetris de Productos (10 Funciones)")
+            st.markdown("Caen figuras geométricas reales de Tetris (en L, T, I, Cuadrado). **Todas tienen color neutro**: haz clic sobre la pieza que tenga la derivada correcta antes de que caigan.")
 
             tetris_code = """
             <!DOCTYPE html>
@@ -377,10 +400,10 @@ else:
               .btn-tet { background: #d97706; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 4px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #f59e0b; font-weight: bold; margin-bottom: 4px;">Puntos: <span id="pts">0</span></div>
+              <div style="font-size: 14px; color: #f59e0b; font-weight: bold; margin-bottom: 4px;">Función: <span id="tlvl">1</span>/10 | Puntos: <span id="pts">0</span></div>
               <div style="background: #1e293b; border: 2px solid #f59e0b; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #f59e0b; font-size: 14px; font-weight: bold;" id="tfunc">f(x) = x² · sin(x)</div>
-                <div style="color: white; font-size: 12px;">¡Atrapa la figura de Tetris con la derivada correcta!</div>
+                <div style="color: white; font-size: 12px;">Haz clic en la figura de Tetris con la derivada correcta</div>
               </div>
               <canvas id="tc" width="450" height="240"></canvas>
               <div style="margin-top: 6px;">
@@ -390,14 +413,21 @@ else:
             <script>
               const canvas = document.getElementById("tc");
               const ctx = canvas.getContext("2d");
-              let score = 0;
+              let score = 0, step = 1;
 
               const tetrisData = [
                 { f: "x² · sin(x)", corr: "2x·sin(x) + x²·cos(x)", opts: ["2x·sin(x) + x²·cos(x)", "2x·cos(x)", "x²·sin(x)", "2x·sin(x) - x²·cos(x)"] },
                 { f: "x · eˣ", corr: "eˣ + x·eˣ", opts: ["eˣ", "eˣ + x·eˣ", "x·eˣ", "1 + eˣ"] },
-                { f: "x³ · cos(x)", corr: "3x²·cos(x) - x³·sin(x)", opts: ["3x²·cos(x)", "3x²·cos(x) - x³·sin(x)", "x³·sin(x)", "3x²·sin(x)"] }
+                { f: "x³ · cos(x)", corr: "3x²·cos(x) - x³·sin(x)", opts: ["3x²·cos(x)", "3x²·cos(x) - x³·sin(x)", "x³·sin(x)", "3x²·sin(x)"] },
+                { f: "ln(x) · x", corr: "1 + ln(x)", opts: ["1/x", "1 + ln(x)", "ln(x)", "x + ln(x)"] },
+                { f: "x² · eˣ", corr: "2x·eˣ + x²·eˣ", opts: ["2x·eˣ", "2x·eˣ + x²·eˣ", "x²·eˣ", "2eˣ"] },
+                { f: "sin(x) · cos(x)", corr: "cos²(x) - sin²(x)", opts: ["cos(2x)", "cos²(x) - sin²(x)", "2sin(x)cos(x)", "-sin(x)"] },
+                { f: "x · arctan(x)", corr: "arctan(x) + x/(1+x²)", opts: ["1/(1+x²)", "arctan(x) + x/(1+x²)", "x/(1+x²)", "arctan(x)"] },
+                { f: "eˣ · sin(x)", corr: "eˣ(sin(x) + cos(x))", opts: ["eˣ·cos(x)", "eˣ(sin(x) + cos(x))", "eˣ·sin(x)", "cos(x)"] },
+                { f: "x³ · ln(x)", corr: "3x²·ln(x) + x²", opts: ["3x²·ln(x)", "3x²·ln(x) + x²", "x²·ln(x)", "3x²"] },
+                { f: "(x²+1) · cos(x)", corr: "2x·cos(x) - (x²+1)sin(x)", opts: ["- (x²+1)sin(x)", "2x·cos(x) - (x²+1)sin(x)", "2x·cos(x)", "x²·cos(x)"] }
               ];
-              let tIdx = 0, currTet = tetrisData[0];
+              let currTet = tetrisData[0];
               const shapes = ['I', 'L', 'T', 'O'];
               let fallingPieces = [];
 
@@ -426,9 +456,9 @@ else:
                 for(let p of fallingPieces) {
                   if(mx > p.x - 35 && mx < p.x + 35 && my > p.y - 35 && my < p.y + 35) {
                     if(p.text === currTet.corr) {
-                      score += 250;
-                      tIdx = (tIdx + 1) % tetrisData.length;
-                      currTet = tetrisData[tIdx];
+                      score += 250; step++;
+                      if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas en Tetris."); step = 1; score = 0; }
+                      currTet = tetrisData[(step-1)%tetrisData.length];
                       document.getElementById("tfunc").innerText = `f(x) = ${currTet.f}`;
                       spawnTetrisPieces();
                     } else {
@@ -440,8 +470,9 @@ else:
               });
 
               function drawShape(p) {
-                ctx.fillStyle = p.text === currTet.corr ? "#f59e0b" : "#475569";
-                ctx.strokeStyle = "#ffffff";
+                // Todas las figuras con color neutro (sin pistas)
+                ctx.fillStyle = "#334155";
+                ctx.strokeStyle = "#64748b";
                 ctx.lineWidth = 2;
                 let px = p.x, py = p.y;
                 
@@ -464,7 +495,7 @@ else:
                 }
 
                 ctx.fillStyle = "white";
-                ctx.font = "bold 11px sans-serif";
+                ctx.font = "bold 10px sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText(p.text, px, py + 4);
               }
@@ -480,6 +511,7 @@ else:
                 }
 
                 document.getElementById("pts").innerText = score;
+                document.getElementById("tlvl").innerText = step;
                 requestAnimationFrame(loop);
               }
               loop();
@@ -488,11 +520,11 @@ else:
             st.components.v1.html(tetris_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 5: JEFE FINAL REGLA DE LA CADENA
+        # MUNDO 5: JEFE FINAL REGLA DE LA CADENA (10 Oleadas)
         # -------------------------------------------------------------
         elif b == 5:
-            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (Combate)")
-            st.markdown("Selecciona el contraataque exacto de la regla de la cadena para derrotar al jefe[cite: 16].")
+            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (10 Oleadas)")
+            st.markdown("Derrota al jefe superando las 10 oleadas de composición de funciones.")
 
             boss_code = """
             <!DOCTYPE html>
@@ -500,11 +532,11 @@ else:
             <head><style>
               body { background: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; }
               canvas { background: #18181b; border: 3px solid #ef4444; border-radius: 10px; display: block; margin: 0 auto; }
-              .btn-boss { background: #dc2626; color: white; border: none; padding: 10px 16px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 4px; }
+              .btn-boss { background: #dc2626; color: white; border: none; padding: 10px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 4px; }
               .btn-boss:hover { background: #b91c1c; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px;">Vida del Jefe: <span id="bosshp">❤️❤️❤️❤️❤️</span></div>
+              <div style="font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px;">Oleada: <span id="bwave">1</span>/10 | Vida del Jefe: <span id="bosshp">❤️❤️❤️❤️❤️</span></div>
               <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ef4444; font-size: 14px; font-weight: bold;" id="bof">f(x) = sin(4x²)</div>
               </div>
@@ -513,13 +545,20 @@ else:
             <script>
               const canvas = document.getElementById("bc");
               const ctx = canvas.getContext("2d");
-              let bossLife = 5;
+              let bossLife = 5, wave = 1;
               const bosses = [
                 { f: "sin(4x²)", corr: "cos(4x²) · 8x", opts: ["cos(4x²)", "cos(4x²) · 8x", "-sin(4x²) · 8x", "8x·sin(4x²)"] },
                 { f: "(3x + 1)⁵", corr: "5(3x + 1)⁴ · 3", opts: ["5(3x + 1)⁴", "5(3x + 1)⁴ · 3", "(3x + 1)⁴ · 15", "3(3x + 1)⁴"] },
-                { f: "e^(5x²)", corr: "e^(5x²) · 10x", opts: ["e^(5x²)", "10x·e^(5x)", "e^(5x²) · 10x", "5x·e^(5x²)"] }
+                { f: "e^(5x²)", corr: "e^(5x²) · 10x", opts: ["e^(5x²)", "10x·e^(5x)", "e^(5x²) · 10x", "5x·e^(5x²)"] },
+                { f: "ln(x² + 1)", corr: "2x / (x² + 1)", opts: ["1 / (x² + 1)", "2x / (x² + 1)", "x / (x² + 1)", "2 / (x² + 1)"] },
+                { f: "cos(3x³)", corr: "-sin(3x³) · 9x²", opts: ["-sin(3x³)", "-sin(3x³) · 9x²", "3x²·cos(3x³)", "-9x²·cos(3x³)"] },
+                { f: "√(x² + 4)", corr: "x / √(x² + 4)", opts: ["1 / √(x² + 4)", "2x / √(x² + 4)", "x / √(x² + 4)", "2 / √(x² + 4)"] },
+                { f: "tan(2x)", corr: "2sec²(2x)", opts: ["sec²(2x)", "2sec²(2x)", "2csc²(2x)", "tan²(2x)"] },
+                { f: "(2x - 5)⁶", corr: "6(2x - 5)⁵ · 2", opts: ["6(2x - 5)⁵", "12(2x - 5)⁵", "6(2x - 5)⁵ · 2", "2(2x - 5)⁵"] },
+                { f: "e^(sin(x))", corr: "e^(sin(x)) · cos(x)", opts: ["e^(sin(x))", "e^(sin(x)) · cos(x)", "cos(x)", "e^(cos(x))"] },
+                { f: "ln(sin(x))", corr: "cot(x)", opts: ["tan(x)", "cot(x)", "1/sin(x)", "-cot(x)"] }
               ];
-              let bIdx = 0, currBoss = bosses[0];
+              let currBoss = bosses[0];
 
               function renderOptions() {
                 let container = document.getElementById("optionsDiv");
@@ -535,11 +574,11 @@ else:
 
               function checkAttack(val) {
                 if(val === currBoss.corr) {
-                  bossLife--;
-                  if(bossLife <= 0) { alert("🎉 ¡VICTORIA TOTAL!"); bossLife = 5; }
+                  bossLife--; wave++;
+                  if(wave > 10) { alert("🎉 ¡VICTORIA TOTAL! Has derrotado las 10 oleadas del Jefe."); wave = 1; bossLife = 5; }
+                  else if(bossLife <= 0) { alert("💥 ¡Jefe derrotado en esta ronda! Siguiente oleada."); bossLife = 5; }
                   else { alert("💥 ¡Ataque exitoso!"); }
-                  bIdx = (bIdx + 1) % bosses.length;
-                  currBoss = bosses[bIdx];
+                  currBoss = bosses[(wave-1)%bosses.length];
                   document.getElementById("bof").innerText = `f(x) = ${currBoss.f}`;
                   renderOptions();
                   updateBossUI();
@@ -549,6 +588,7 @@ else:
               function updateBossUI() {
                 let h = ""; for(let i=0; i<bossLife; i++) h += "❤️";
                 document.getElementById("bosshp").innerText = h;
+                document.getElementById("bwave").innerText = wave;
               }
 
               function loop() {

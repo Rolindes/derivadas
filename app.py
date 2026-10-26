@@ -156,7 +156,7 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 CON CARRETERA VISUAL Y 5 CARRILES
+        # MUNDO 1: CARRERA DE F1 CON 5 CARRILES
         if b == 1:
             st.subheader("🏎️ Gran Premio F1: Carretera en Movimiento")
             
@@ -166,47 +166,35 @@ else:
             c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
             c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
             
-            # Obtener datos de la vuelta actual
+            # Datos del reto actual
             func = st.session_state.f1_game['func_text']
             x_pt = st.session_state.f1_game['x_point']
             opts = st.session_state.f1_game['options']
             current_car_pos = st.session_state.f1_game["car_lane"]
 
-            # Representación visual simulada de la carretera de 5 carriles en HTML/CSS
-            lanes_html = ""
-            for i in range(5):
-                is_car_here = (i == current_car_pos)
-                bg_color = "#38bdf8" if is_car_here else "#1e293b"
-                text_color = "#020617" if is_car_here else "#f8fafc"
-                car_icon = "🏎️ [TÚ] " if is_car_here else f"Carril {i+1} "
-                
-                lanes_html += f"""
-                <div style="flex: 1; background-color: {bg_color}; color: {text_color}; border: 2px dashed #475569; padding: 15px 5px; text-align: center; border-radius: 8px; font-weight: bold; margin: 0 4px;">
-                    <div style="font-size: 13px; margin-bottom: 5px;">{car_icon}</div>
-                    <div style="font-size: 20px;">{opts[i]}</div>
-                </div>
-                """
-
-            highway_box = f"""
-            <div style="background: linear-gradient(180deg, #0f172a 0%, #020617 100%); padding: 20px; border-radius: 20px; border: 3px solid #f43f5e; box-shadow: 0 0 25px rgba(244,63,94,0.3);">
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <span style="background-color: #f43f5e; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">🏁 CARRETERA ABIERTA - VUELTA {st.session_state.f1_game['lap']} / 7</span>
-                    <h2 style="color: #38bdf8; margin: 10px 0 5px 0; font-size: 28px;">Calcula la derivada: f'( {x_pt} )</h2>
-                    <p style="color: #fbbf24; font-size: 22px; font-weight: 900; margin: 0;">Función en ruta: f(x) = {func}</p>
-                </div>
-                
-                <div style="background-color: #020617; padding: 15px; border-radius: 12px; border: 2px solid #334155; text-align: center;">
-                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 10px;">🛣️ VISTA AÉREA DE LA CARRETERA (5 CARRILES AVANZANDO)</p>
-                    <div style="display: flex; justify-content: space-between;">
-                        {lanes_html}
-                    </div>
-                </div>
-            </div>
-            """
-            st.markdown(highway_box, unsafe_allow_html=True)
-            st.markdown("<br>", unsafe_allow_html=True)
+            # Panel de objetivo limpio y profesional
+            st.info(f"🏁 **OBJETIVO DE LA VUELTA {st.session_state.f1_game['lap']} / 7**\n\n"
+                    f"Calcula la derivada: **f'( {x_pt} )** para la función **f(x) = {func}**\n\n"
+                    f"🛣️ *Usa el volante para moverte por los 5 carriles de la carretera y acelera cuando estés en el correcto.*")
             
-            # Controles de movimiento al volante
+            st.markdown("---")
+            st.markdown("### 🛣️ Vista de la Carretera (5 Carriles)")
+
+            # Dibujar los 5 carriles usando columnas nativas para evitar fallos de renderizado
+            lane_cols = st.columns(5)
+            for i in range(5):
+                with lane_cols[i]:
+                    is_here = (i == current_car_pos)
+                    if is_here:
+                        st.markdown(f"### 🏎️ **[TÚ]**")
+                        st.success(f"**[ {opts[i]} ]**")
+                    else:
+                        st.markdown(f"Carril {i+1}")
+                        st.code(f"{opts[i]}", language=None)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Controles de volante (Izquierda / Derecha)
             col_mv1, col_mv2, col_mv3 = st.columns([1, 2, 1])
             with col_mv1:
                 if st.button("⬅️ Volante Izquierda", use_container_width=True):
@@ -221,8 +209,8 @@ else:
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Botón de acelerar / cruzar la meta de este carril
-            if st.button("🚀 ACELERAR Y PASAR POR ESTE CARRIL", use_container_width=True):
+            # Botón de acelerar / pasar por meta del carril actual
+            if st.button("🚀 ACELERAR Y CRUZAR ESTE CARRIL", use_container_width=True):
                 chosen_val = opts[current_car_pos]
                 
                 if chosen_val == st.session_state.f1_game["correct_ans"]:
@@ -232,7 +220,7 @@ else:
                     u_data["corrects"] += 1
                     
                     if st.session_state.f1_game["lap"] < 7:
-                        st.success(f"🎉 ¡Vuelta {st.session_state.f1_game['lap']} superada con éxito! Avanzando a la siguiente sección de la carretera...")
+                        st.success(f"🎉 ¡Vuelta {st.session_state.f1_game['lap']} superada! Avanzando en la carretera...")
                         st.session_state.f1_game["lap"] += 1
                         generate_f1_challenge()
                     else:

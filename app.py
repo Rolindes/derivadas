@@ -33,33 +33,6 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
-# Estado del Minijuego Comecocos (Cálculo de pendientes)
-if "pac_game" not in st.session_state:
-    st.session_state.pac_game = {
-        "lives": 3,
-        "level": 1,
-        "func_text": "x²",
-        "x_point": 2,
-        "correct_val": 4,
-        "options": [4, 2, 8, 1]
-    }
-
-def reset_pacman_slope_round():
-    # Banco de retos de cálculo de pendiente en un punto
-    challenges = [
-        ("x²", 2, 4, [4, 2, 8, 1]),
-        ("x³", 1, 3, [3, 1, 6, 9]),
-        ("2x²", 3, 12, [12, 6, 9, 4]),
-        ("x³ - 3x", 2, 9, [9, 3, 6, 12]),
-        ("5x", 4, 5, [5, 20, 10, 1])
-    ]
-    f_text, x_pt, correct, opts = random.choice(challenges)
-    random.shuffle(opts)
-    st.session_state.pac_game["func_text"] = f_text
-    st.session_state.pac_game["x_point"] = x_pt
-    st.session_state.pac_game["correct_val"] = correct
-    st.session_state.pac_game["options"] = opts
-
 # ================= PANTALLA 0: APODO =================
 if st.session_state.current_user is None:
     st.markdown("## 🕹️ DERIVATIVE ARCADE PRO")
@@ -103,7 +76,7 @@ else:
     if st.session_state.screen == "map":
         st.markdown("## 🗺️ Salón Recreativo - Mapa de Mundos")
         worlds = [
-            (1, "Fase 1: 🟡 Comecocos - Come la Pendiente Exacta"),
+            (1, "Fase 1: 🟡 Laberinto Pac-Man (Movimiento Real)"),
             (2, "Fase 2: 🎈 Fragua Polinómica"),
             (3, "Fase 3: 🎯 Bosque Trascendente"),
             (4, "Fase 4: 📦 Torre de Productos"),
@@ -133,56 +106,126 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: COMECOCOS CÁLCULO DE PENDIENTE
+        # MUNDO 1: LABERINTO PAC-MAN INTERACTIVO EN HTML5/JS
         if b == 1:
-            st.subheader("🟡 Minijuego: Come la Pendiente Exacta")
+            st.subheader("🟡 Minijuego: Pac-Man Laberinto de Derivadas")
+            st.write("Usa los botones o muévete por el laberinto para guiar al comecocos hacia la pastilla con la **derivada correcta** y esquivar a los fantasmas.")
+
+            # Componente HTML / Canvas interactivo embebido en Streamlit
+            pacman_html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <style>
+              body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; }
+              canvas { background-color: #0f172a; border: 3px solid #38bdf8; border-radius: 10px; box-shadow: 0 0 20px rgba(56,189,248,0.3); }
+              .btn-control { background-color: #2563eb; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
+              .btn-control:hover { background-color: #1d4ed8; }
+            </style>
+            </head>
+            <body>
+              <h3 id="question" style="color: #fbbf24; margin: 5px;">Reto: Derivada de f(x) = x²</h3>
+              <canvas id="gameCanvas" width="400" height="250"></canvas>
+              <div>
+                <button class="btn-control" onclick="move('UP')">⬆️ Arriba</button><br>
+                <button class="btn-control" onclick="move('LEFT')">⬅️ Izda</button>
+                <button class="btn-control" onclick="move('RIGHT')">➡️ Dcha</button><br>
+                <button class="btn-control" onclick="move('DOWN')">⬇️ Abajo</button>
+              </div>
+              <p id="status" style="color: #38bdf8; font-weight: bold;"></p>
+
+            <script>
+              const canvas = document.getElementById("gameCanvas");
+              const ctx = canvas.getContext("2d");
+
+              let pacman = { x: 50, y: 125, size: 15, speed: 15 };
+              let ghost = { x: 330, y: 125, size: 15, speed: 2 };
+              let targetPill = { x: 330, y: 60, text: "2x", correct: true };
+              let wrongPill = { x: 330, y: 190, text: "x²", correct: false };
+              let score = 0;
+
+              function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Dibujar Pasillos / Laberinto (líneas decorativas)
+                ctx.strokeStyle = "#1e293b";
+                ctx.lineWidth = 4;
+                ctx.strokeRect(20, 20, 360, 210);
+
+                // Dibujar Pac-Man
+                ctx.beginPath();
+                ctx.arc(pacman.x, pacman.y, pacman.size, 0.2 * Math.PI, 1.8 * Math.PI);
+                ctx.lineTo(pacman.x, pacman.y);
+                ctx.fillStyle = "#facc15";
+                ctx.fill();
+                ctx.closePath();
+
+                // Dibujar Fantasma del Error
+                ctx.beginPath();
+                ctx.arc(ghost.x, ghost.y, ghost.size, Math.PI, 0, false);
+                ctx.lineTo(ghost.x + ghost.size, ghost.y + ghost.size);
+                ctx.lineTo(ghost.x - ghost.size, ghost.y + ghost.size);
+                ctx.fillStyle = "#f43f5e";
+                ctx.fill();
+                ctx.closePath();
+
+                // Dibujar Pastilla Correcta (Ganadora)
+                ctx.beginPath();
+                ctx.arc(targetPill.x, targetPill.y, 18, 0, 2 * Math.PI);
+                ctx.fillStyle = "#4ade80";
+                ctx.fill();
+                ctx.fillStyle = "#020617";
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText(targetPill.text, targetPill.x - 10, targetPill.y + 5);
+
+                // Dibujar Pastilla Incorrecta (Trampa)
+                ctx.beginPath();
+                ctx.arc(wrongPill.x, wrongPill.y, 18, 0, 2 * Math.PI);
+                ctx.fillStyle = "#f87171";
+                ctx.fill();
+                ctx.fillStyle = "#020617";
+                ctx.fillText(wrongPill.text, wrongPill.x - 10, wrongPill.y + 5);
+              }
+
+              function move(dir) {
+                if (dir === 'UP' && pacman.y > 40) pacman.y -= pacman.speed;
+                if (dir === 'DOWN' && pacman.y < 210) pacman.y += pacman.speed;
+                if (dir === 'LEFT' && pacman.x > 40) pacman.x -= pacman.speed;
+                if (dir === 'RIGHT' && pacman.x < 360) pacman.x += pacman.speed;
+
+                checkCollision();
+                draw();
+              }
+
+              function checkCollision() {
+                // Comprobar si choca con la pastilla correcta
+                let distCorrect = Math.hypot(pacman.x - targetPill.x, pacman.y - targetPill.y);
+                let distWrong = Math.hypot(pacman.x - wrongPill.x, pacman.y - wrongPill.y);
+
+                if (distCorrect < 25) {
+                  document.getElementById("status").innerHTML = "🎉 ¡WAKA WAKA! ¡Te comiste la derivada correcta!";
+                  document.getElementById("status").style.color = "#4ade80";
+                  setTimeout(resetGame, 1500);
+                } else if (distWrong < 25) {
+                  document.getElementById("status").innerHTML = "❌ ¡CHOCASTE CON EL FANTASMA! Era la trampa.";
+                  document.getElementById("status").style.color = "#f43f5e";
+                  setTimeout(resetGame, 1500);
+                }
+              }
+
+              function resetGame() {
+                pacman.x = 50; pacman.y = 125;
+                document.getElementById("status").innerHTML = "";
+                draw();
+              }
+
+              draw();
+            </script>
+            </body>
+            </html>
+            """
             
-            lives_display = "❤️" * st.session_state.pac_game["lives"] + "🖤" * (3 - st.session_state.pac_game["lives"])
-            col_l1, col_l2 = st.columns([2, 2])
-            col_l1.markdown(f"### Vidas: {lives_display}")
-            col_l2.markdown(f"### Nivel: {st.session_state.pac_game['level']}")
-            
-            st.markdown(f"""
-            <div style="background-color:#1e1b4b; padding:20px; border-radius:15px; border:2px dashed #fbbf24; text-align:center;">
-                <h3 style="color:#f8fafc; margin:0;">🟡 ¡PAC-DERIVATIVE EN EL LABERINTO!</h3>
-                <p style="color:#38bdf8; font-size:18px; margin:10px 0;">Calcula la pendiente de <b>f(x) = {st.session_state.pac_game['func_text']}</b> en el punto <b>x = {st.session_state.pac_game['x_point']}</b></p>
-                <p style="color:#94a3b8; font-size:14px;">¡Cómete la pastilla numérica correcta y evita a los fantasmas!</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            opts = st.session_state.pac_game["options"]
-            c1, c2 = st.columns(2)
-            
-            for i, opt in enumerate(opts):
-                target_col = c1 if i % 2 == 0 else c2
-                with target_col:
-                    if st.button(f"👻 Pasillo {i+1}:  [ {opt} ]", key=f"pac_opt_{i}", use_container_width=True):
-                        if opt == st.session_state.pac_game["correct_val"]:
-                            st.success("🎉 ¡WAKA WAKA! ¡Te comiste la pendiente exacta! +200 PTS")
-                            u_data["score"] += 200
-                            u_data["streak"] += 1
-                            u_data["corrects"] += 1
-                            st.session_state.pac_game["level"] += 1
-                            if u_data["unlocked"] < 2:
-                                u_data["unlocked"] = 2
-                            save_users(st.session_state.users)
-                            reset_pacman_slope_round()
-                            st.rerun()
-                        else:
-                            st.session_state.pac_game["lives"] -= 1
-                            u_data["streak"] = 0
-                            u_data["errors"] += 1
-                            save_users(st.session_state.users)
-                            
-                            if st.session_state.pac_game["lives"] <= 0:
-                                st.error("💀 ¡GAME OVER! Te cazaron los fantasmas del error.")
-                                st.session_state.pac_game["lives"] = 3
-                                st.session_state.screen = "map"
-                                st.rerun()
-                            else:
-                                st.error(f"❌ ¡BITE! Esa no era la pendiente. Vidas restantes: {st.session_state.pac_game['lives']}")
+            st.components.v1.html(pacman_html, height=420)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:

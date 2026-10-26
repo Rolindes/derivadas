@@ -68,7 +68,6 @@ def generate_f1_5lanes_challenge():
     ]
     lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
     f_txt, x_pt, corr, opts = pool[lap_idx]
-    # Forzar exactamente 5 opciones por seguridad
     if len(opts) < 5:
         while len(opts) < 5:
             opts.append(corr + len(opts))
@@ -167,18 +166,19 @@ else:
             c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
             c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
             
+            # Panel superior destacado con la función y el punto a calcular para esta vuelta
             f1_box = f"""
             <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 20px; border: 3px solid #38bdf8; text-align: center; box-shadow: 0 0 25px rgba(56,189,248,0.3);">
-                <span style="background-color: #38bdf8; color: #020617; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 14px;">🏁 ZONA DE CÁLCULO DE PISTA</span>
+                <span style="background-color: #38bdf8; color: #020617; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 14px;">🏁 OBJETIVO DE LA VUELTA {st.session_state.f1_game['lap']}</span>
                 <h2 style="color: #f43f5e; margin: 15px 0 5px 0; font-size: 32px;">Calcula la derivada: f'( {st.session_state.f1_game['x_point']} )</h2>
                 <p style="color: #fbbf24; font-size: 26px; font-weight: 900; margin: 0;">Función: f(x) = {st.session_state.f1_game['func_text']}</p>
-                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Usa los botones de dirección o haz clic directamente en el carril correcto.</p>
+                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Mueve tu coche con los botones laterales o selecciona el carril correcto.</p>
             </div>
             """
             st.markdown(f1_box, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Controles de movimiento lateral (Izquierda / Derecha)
+            # Botones de movimiento lateral (Izquierda / Derecha)
             col_mv1, col_mv2, col_mv3 = st.columns([1, 2, 1])
             with col_mv1:
                 if st.button("⬅️ Mover Izquierda", use_container_width=True):
@@ -193,12 +193,8 @@ else:
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Renderizar exactamente los 5 carriles de forma segura
+            # Renderizar los 5 carriles en pantalla claramente
             opts = st.session_state.f1_game["options"]
-            if len(opts) < 5:
-                while len(opts) < 5:
-                    opts.append(0)
-            
             c1, c2, c3, c4, c5 = st.columns(5)
             lanes_ui = [c1, c2, c3, c4, c5]
             current_car_pos = st.session_state.f1_game["car_lane"]

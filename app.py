@@ -33,7 +33,7 @@ if "screen" not in st.session_state:
 if "active_block" not in st.session_state:
     st.session_state.active_block = 1
 
-# Estado seguro de la carrera de F1 (5 carriles, 7 vueltas, posición de carril)
+# Estado seguro de la carrera de F1
 if "f1_game" not in st.session_state:
     st.session_state.f1_game = {
         "lap": 1,
@@ -47,13 +47,14 @@ if "f1_game" not in st.session_state:
         "options": [2, 4, 6, 9, 12]
     }
 else:
-    # Asegurar que si la sesión ya existía, tenga todas las claves necesarias
     if "car_lane" not in st.session_state.f1_game:
         st.session_state.f1_game["car_lane"] = 2
     if "lap" not in st.session_state.f1_game:
         st.session_state.f1_game["lap"] = 1
     if "lives" not in st.session_state:
         st.session_state.f1_game["lives"] = 3
+    if "options" not in st.session_state.f1_game or len(st.session_state.f1_game["options"]) != 5:
+        st.session_state.f1_game["options"] = [2, 4, 6, 9, 12]
 
 def generate_f1_5lanes_challenge():
     pool = [
@@ -67,7 +68,14 @@ def generate_f1_5lanes_challenge():
     ]
     lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
     f_txt, x_pt, corr, opts = pool[lap_idx]
+    # Forzar exactamente 5 opciones por seguridad
+    if len(opts) < 5:
+        while len(opts) < 5:
+            opts.append(corr + len(opts))
+    elif len(opts) > 5:
+        opts = opts[:5]
     random.shuffle(opts)
+    
     st.session_state.f1_game["func_text"] = f_txt
     st.session_state.f1_game["x_point"] = x_pt
     st.session_state.f1_game["correct_ans"] = corr
@@ -185,16 +193,19 @@ else:
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Renderizar los 5 carriles visuales
+            # Renderizar exactamente los 5 carriles de forma segura
             opts = st.session_state.f1_game["options"]
+            if len(opts) < 5:
+                while len(opts) < 5:
+                    opts.append(0)
+            
             c1, c2, c3, c4, c5 = st.columns(5)
             lanes_ui = [c1, c2, c3, c4, c5]
-            
             current_car_pos = st.session_state.f1_game["car_lane"]
 
-            for i, col in enumerate(lanes_ui):
+            for i in range(5):
                 val = opts[i]
-                with col:
+                with lanes_ui[i]:
                     is_here = (i == current_car_pos)
                     label = f"🏎️ **[TÚ]**\n\n**[ {val} ]**" if is_here else f"Carril {i+1}\n\n**[ {val} ]**"
                     

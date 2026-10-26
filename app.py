@@ -58,7 +58,7 @@ else:
 
     # ================= MAPA DE MUNDOS =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Universo Arcade de Derivadas - Supera 10 Funciones por Fase")
+        st.markdown("## 🗺️ Universo Arcade de Derivadas - Pendiente de la Recta Tangente")
         
         worlds = [
             (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista de 10 Funciones)"),
@@ -89,11 +89,11 @@ else:
         st.markdown("---")
 
         # -------------------------------------------------------------
-        # MUNDO 1: F1 ARCADE (10 FUNCIONES)
+        # MUNDO 1: F1 ARCADE (10 FUNCIONES CON PENDIENTE TANGENTE)
         # -------------------------------------------------------------
         if b == 1:
-            st.subheader("🏎️ Fase 1: Gran Premio F1 (10 Funciones)")
-            st.markdown("Sin pistas de colores. Calcula la derivada de memoria y sitúa tu coche en el carril correcto.")
+            st.subheader("🏎️ Fase 1: Gran Premio F1 (Pendiente de la Recta Tangente)")
+            st.markdown("Calcula la derivada como **la pendiente de la recta tangente ($m = f'(x)$)** en el punto dado y esquiva los muros incorrectos.")
 
             f1_code = """
             <!DOCTYPE html>
@@ -107,7 +107,7 @@ else:
               <div style="font-size: 14px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;">Función: <span id="l">1</span>/10 | Pts: <span id="s">0</span></div>
               <div style="background: #1e293b; border: 2px solid #38bdf8; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #38bdf8; font-size: 12px; font-weight: bold;" id="ft">f(x) = x² | x = 3</div>
-                <div style="color: #f43f5e; font-size: 13px; font-weight: bold;" id="qt">Calcula f'(3)</div>
+                <div style="color: #f43f5e; font-size: 13px; font-weight: bold;" id="qt">Pendiente m = f'(3) = ?</div>
               </div>
               <canvas id="c" width="450" height="240"></canvas>
               <div style="margin-top: 8px;">
@@ -141,7 +141,7 @@ else:
                 document.getElementById("l").innerText = step;
                 document.getElementById("s").innerText = pts;
                 document.getElementById("ft").innerHTML = `f(x) = ${q.f} | x = ${q.x}`;
-                document.getElementById("qt").innerText = `Calcula f'(${q.x})`;
+                document.getElementById("qt").innerText = `Pendiente m = f'(${q.x}) = ?`;
               }
               canvas.addEventListener('click', e => {
                 let rect = canvas.getBoundingClientRect();
@@ -172,7 +172,6 @@ else:
                 for(let i=1; i<5; i++) { ctx.beginPath(); ctx.moveTo(15+i*84,0); ctx.lineTo(15+i*84,240); ctx.stroke(); }
                 ctx.setLineDash([]);
                 for(let i=0; i<5; i++) {
-                  // Todos los bloques del mismo color neutro (sin pistas)
                   ctx.fillStyle = "#334155"; ctx.fillRect(lanes[i]-30, oy, 60, 35);
                   ctx.strokeStyle = "#64748b"; ctx.strokeRect(lanes[i]-30, oy, 60, 35);
                   ctx.fillStyle = "white"; ctx.font = "bold 16px sans-serif"; ctx.fillText(q.opts[i], lanes[i]-12, oy+23);
@@ -188,11 +187,11 @@ else:
             st.components.v1.html(f1_code, height=400)
 
         # -------------------------------------------------------------
-        # MUNDO 2: FRAGUA POLINÓMICA (Globos Neutrales - 10 Funciones)
+        # MUNDO 2: FRAGUA POLINÓMICA (10 Funciones con Pendiente Tangente)
         # -------------------------------------------------------------
         elif b == 2:
-            st.subheader("🎈 Fase 2: Fragua Polinómica (10 Funciones)")
-            st.markdown("Los globos suben de la fragua. **Todos tienen el mismo color**: busca el tuyo de memoria y pincha el correcto antes de que suban.")
+            st.subheader("🎈 Fase 2: Fragua Polinómica (Pendiente de la Recta Tangente)")
+            st.markdown("Los globos suben de la fragua. Halla la función derivada como **pendiente de la recta tangente ($m = f'(x)$)** y pincha el correcto.")
 
             balloons_code = """
             <!DOCTYPE html>
@@ -205,6 +204,7 @@ else:
               <div style="font-size: 14px; color: #ec4899; font-weight: bold; margin-bottom: 4px;">Función: <span id="bl">1</span>/10 | Puntos: <span id="bs">0</span></div>
               <div style="background: #1e293b; border: 2px solid #ec4899; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ec4899; font-size: 14px; font-weight: bold;" id="bft">f(x) = 4x² + 5x</div>
+                <div style="color: white; font-size: 12px;">Pendiente m = f'(x)</div>
               </div>
               <canvas id="bc" width="450" height="240"></canvas>
             <script>
@@ -253,7 +253,6 @@ else:
                 for(let item of items) {
                   item.y -= item.speed;
                   if(item.y < -30) item.y = 260;
-                  // Todos los globos con el mismo color neutro (sin pistas de color)
                   ctx.beginPath(); ctx.arc(item.x, item.y, item.radius, 0, Math.PI*2);
                   ctx.fillStyle = "#334155"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#64748b"; ctx.stroke();
                   ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
@@ -266,14 +265,14 @@ else:
               loop();
             </script></body></html>
             """
-            st.components.v1.html(balloons_code, height=370)
+            st.components.v1.html(balloons_code, height=390)
 
         # -------------------------------------------------------------
-        # MUNDO 3: TENIS TRASCENDENTE (Pelota Neutra - 10 Funciones)
+        # MUNDO 3: TENIS TRASCENDENTE (10 Funciones con Pendiente Tangente)
         # -------------------------------------------------------------
         elif b == 3:
-            st.subheader("🎾 Fase 3: Tenis Trascendente (10 Funciones)")
-            st.markdown("La pelota que cae lleva una opción. **No hay colores que delaten la respuesta**: golpéala con tu pala solo si es la derivada correcta.")
+            st.subheader("🎾 Fase 3: Tenis Trascendente (Pendiente de la Recta Tangente)")
+            st.markdown("Golpea con tu pala la opción que representa la **pendiente de la recta tangente ($m = f'(x)$)**.")
 
             tennis_code = """
             <!DOCTYPE html>
@@ -284,10 +283,10 @@ else:
               .btn-p { background: #059669; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; }
             </style></head>
             <body>
-              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">Función: <span id="tlvl">1</span>/10 | Puntos: <span id="ts">0</span> | Vidas: <span id="tl">❤️❤️❤️</span></div>
+              <div style="font-size: 14px; color: #10b981; font-weight: bold; margin-bottom: 4px;">Función: <span id="tlvl">1</span>/10 | Pts: <span id="ts">0</span> | Vidas: <span id="tl">❤️❤️❤️</span></div>
               <div style="background: #1e293b; border: 2px solid #10b981; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #10b981; font-size: 14px; font-weight: bold;" id="tft">f(x) = 4sin(x)</div>
-                <div style="color: white; font-size: 12px;">Golpea solo la derivada correcta con la pala</div>
+                <div style="color: white; font-size: 12px;">Pendiente m = f'(x) con la pala</div>
               </div>
               <canvas id="tc" width="450" height="240"></canvas>
               <div style="margin-top: 6px;">
@@ -348,7 +347,7 @@ else:
                     document.getElementById("tft").innerText = `f(x) = ${currR.f}`;
                   } else {
                     lives--;
-                    alert("❌ ¡Derivada incorrecta golpeada!");
+                    alert("❌ ¡Pendiente incorrecta!");
                     if(lives <= 0) { alert("💥 ¡Game Over!"); lives = 3; score = 0; step = 1; }
                   }
                   resetBall();
@@ -360,7 +359,6 @@ else:
                   resetBall();
                 }
 
-                // Pelota con color neutro (sin pistas)
                 ctx.fillStyle = "#334155";
                 ctx.beginPath(); ctx.arc(ball.x, ball.y, 22, 0, Math.PI*2); ctx.fill();
                 ctx.lineWidth = 2; ctx.strokeStyle = "#64748b"; ctx.stroke();
@@ -368,7 +366,6 @@ else:
                 ctx.fillStyle = "white"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
                 ctx.fillText(ball.text, ball.x, ball.y + 4);
 
-                // Pala de tenis
                 ctx.fillStyle = "#facc15";
                 ctx.fillRect(paddleX, paddleY, paddleWidth, 12);
 
@@ -385,11 +382,11 @@ else:
             st.components.v1.html(tennis_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 4: TETRIS DE PRODUCTOS (Piezas Geométricas Neutrales - 10 Funciones)
+        # MUNDO 4: TETRIS DE PRODUCTOS (10 Funciones con Pendiente Tangente)
         # -------------------------------------------------------------
         elif b == 4:
-            st.subheader("🧱 Fase 4: Tetris de Productos (10 Funciones)")
-            st.markdown("Caen figuras geométricas reales de Tetris (en L, T, I, Cuadrado). **Todas tienen color neutro**: haz clic sobre la pieza que tenga la derivada correcta antes de que caigan.")
+            st.subheader("🧱 Fase 4: Tetris de Productos (Pendiente de la Recta Tangente)")
+            st.markdown("Atrapa la pieza geométrica que representa la **pendiente de la recta tangente ($m = f'(x)$)**.")
 
             tetris_code = """
             <!DOCTYPE html>
@@ -403,7 +400,7 @@ else:
               <div style="font-size: 14px; color: #f59e0b; font-weight: bold; margin-bottom: 4px;">Función: <span id="tlvl">1</span>/10 | Puntos: <span id="pts">0</span></div>
               <div style="background: #1e293b; border: 2px solid #f59e0b; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #f59e0b; font-size: 14px; font-weight: bold;" id="tfunc">f(x) = x² · sin(x)</div>
-                <div style="color: white; font-size: 12px;">Haz clic en la figura de Tetris con la derivada correcta</div>
+                <div style="color: white; font-size: 12px;">Pendiente m = f'(x) en la pieza de Tetris</div>
               </div>
               <canvas id="tc" width="450" height="240"></canvas>
               <div style="margin-top: 6px;">
@@ -470,7 +467,6 @@ else:
               });
 
               function drawShape(p) {
-                // Todas las figuras con color neutro (sin pistas)
                 ctx.fillStyle = "#334155";
                 ctx.strokeStyle = "#64748b";
                 ctx.lineWidth = 2;
@@ -523,8 +519,8 @@ else:
         # MUNDO 5: JEFE FINAL REGLA DE LA CADENA (10 Oleadas)
         # -------------------------------------------------------------
         elif b == 5:
-            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (10 Oleadas)")
-            st.markdown("Derrota al jefe superando las 10 oleadas de composición de funciones.")
+            st.subheader("⚔️ Fase 5: Jefe Final - Regla de la Cadena (Pendiente de la Recta Tangente)")
+            st.markdown("Derrota al jefe calculando la **pendiente de la recta tangente ($m = f'(x)$)** mediante la regla de la cadena.")
 
             boss_code = """
             <!DOCTYPE html>
@@ -539,6 +535,7 @@ else:
               <div style="font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px;">Oleada: <span id="bwave">1</span>/10 | Vida del Jefe: <span id="bosshp">❤️❤️❤️❤️❤️</span></div>
               <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 8px; padding: 6px; width: 420px; margin: 0 auto 6px auto;">
                 <div style="color: #ef4444; font-size: 14px; font-weight: bold;" id="bof">f(x) = sin(4x²)</div>
+                <div style="color: white; font-size: 11px;">Pendiente m = f'(x)</div>
               </div>
               <canvas id="bc" width="450" height="120"></canvas>
               <div id="optionsDiv" style="margin-top: 8px;"></div>
@@ -575,7 +572,7 @@ else:
               function checkAttack(val) {
                 if(val === currBoss.corr) {
                   bossLife--; wave++;
-                  if(wave > 10) { alert("🎉 ¡VICTORIA TOTAL! Has derrotado las 10 oleadas del Jefe."); wave = 1; bossLife = 5; }
+                  if(wave > 10) { alert("🏆 ¡VICTORIA TOTAL! Has derrotado las 10 oleadas del Jefe."); wave = 1; bossLife = 5; }
                   else if(bossLife <= 0) { alert("💥 ¡Jefe derrotado en esta ronda! Siguiente oleada."); bossLife = 5; }
                   else { alert("💥 ¡Ataque exitoso!"); }
                   currBoss = bosses[(wave-1)%bosses.length];
@@ -601,7 +598,7 @@ else:
               renderOptions(); updateBossUI(); loop();
             </script></body></html>
             """
-            st.components.v1.html(boss_code, height=380)
+            st.components.v1.html(boss_code, height=390)
 
     # ================= PANTALLA 3: INFORME =================
     elif st.session_state.screen == "summary":

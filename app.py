@@ -84,10 +84,10 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 REAL CON MOTOR HTML5 CANVAS EN MOVIMIENTO
+        # MUNDO 1: CARRERA DE F1 CON FUNCIÓN Y PUNTO VISIBLES EN PISTA
         if b == 1:
             st.subheader("🏎️ Gran Premio F1: Carretera en Movimiento Real")
-            st.markdown("Disfruta de la **carretera de 5 carriles en movimiento real**. Usa los botones de abajo o las **flechas del teclado** para mover tu coche de F1 de un carril a otro, esquivar los muros y atrapar el número de la **derivada correcta** durante 7 vueltas.")
+            st.markdown("Mira el **enunciado en pantalla**, usa los botones o las **flechas del teclado** para mover tu coche de F1 entre los 5 carriles y atrapa la derivada correcta durante 7 vueltas.")
 
             f1_canvas_game = """
             <!DOCTYPE html>
@@ -103,14 +103,18 @@ else:
             </style>
             </head>
             <body>
-              <div style="margin-bottom: 8px; font-weight: bold; font-size: 16px; color: #fbbf24;">
+              <div style="margin-bottom: 6px; font-weight: bold; font-size: 15px; color: #fbbf24;">
                 Vuelta: <span id="lapDisplay">1</span> / 7 &nbsp;|&nbsp; Vidas: <span id="livesDisplay">❤️❤️❤️</span> &nbsp;|&nbsp; Puntos: <span id="scoreDisplay">0</span>
               </div>
-              <div id="challengeText" style="margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #f43f5e;">
-                Calcula f'(3) para f(x) = x²
+              
+              <!-- PANEL VISIBLE DE LA FUNCIÓN Y EL PUNTO -->
+              <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #f43f5e; border-radius: 10px; padding: 10px; width: 430px; margin: 0 auto 10px auto; text-align: center;">
+                <div style="color: #94a3b8; font-size: 12px; font-weight: bold; text-transform: uppercase;">Reto de Derivada en un Punto</div>
+                <div id="funcText" style="color: #38bdf8; font-size: 22px; font-weight: 900; margin-top: 4px;">f(x) = x² &nbsp;|&nbsp; x = 3</div>
+                <div id="questionPrompt" style="color: #f43f5e; font-size: 15px; font-weight: bold; margin-top: 2px;">Calcula f'(3)</div>
               </div>
 
-              <canvas id="f1Canvas" width="450" height="350"></canvas>
+              <canvas id="f1Canvas" width="450" height="300"></canvas>
 
               <div class="controls">
                 <button class="btn-move" onclick="moveCar(-1)">⬅️ Izquierda</button>
@@ -121,19 +125,17 @@ else:
               const canvas = document.getElementById("f1Canvas");
               const ctx = canvas.getContext("2d");
 
-              // 5 carriles en coordenadas X
               const lanes = [45, 135, 225, 315, 405];
-              let currentLane = 2; // Empieza en el carril central
-              const carY = 270;
+              let currentLane = 2;
+              const carY = 220;
 
               let lap = 1;
               let lives = 3;
               let score = 0;
               let roadOffset = 0;
 
-              // Obstáculos en los 5 carriles que bajan
               let obstacleY = -100;
-              let speed = 2;
+              let speed = 1.8;
 
               const challenges = [
                 { f: "x²", x: 3, correct: 6, opts: [2, 4, 6, 9, 12] },
@@ -153,7 +155,10 @@ else:
                 let h = "";
                 for(let i=0; i<lives; i++) h += "❤️";
                 document.getElementById("livesDisplay").innerText = h;
-                document.getElementById("challengeText").innerText = `Calcula f'(${currentCh.x}) para f(x) = ${currentCh.f}`;
+                
+                // Actualizar panel superior con la función y el punto actual
+                document.getElementById("funcText").innerHTML = `f(x) = ${currentCh.f} &nbsp;|&nbsp; x = ${currentCh.x}`;
+                document.getElementById("questionPrompt").innerText = `Calcula f'(${currentCh.x})`;
               }
 
               function moveCar(dir) {
@@ -168,26 +173,22 @@ else:
               });
 
               function resetObstacles() {
-                obstacleY = -120;
+                obstacleY = -100;
                 currentCh.opts.sort(() => Math.random() - 0.5);
               }
 
               resetObstacles();
 
               function update() {
-                // Movimiento de la carretera (líneas discontinuas bajando)
                 roadOffset += speed * 2;
                 if (roadOffset > 40) roadOffset = 0;
 
-                // Movimiento de los bloques de opciones hacia abajo
                 obstacleY += speed;
 
-                // Colisión cuando los bloques llegan a la altura del coche
                 if (obstacleY >= carY - 25 && obstacleY <= carY + 35) {
                   let winningLane = currentCh.opts.indexOf(currentCh.correct);
 
                   if (currentLane === winningLane) {
-                    // ¡Acierto!
                     score += 200;
                     lap++;
                     if (lap > 7) {
@@ -198,7 +199,6 @@ else:
                     }
                     resetObstacles();
                   } else {
-                    // ¡Fallo / Crash!
                     lives--;
                     if (lives <= 0) {
                       alert("💥 ¡GAME OVER! Te has estrellado contra el muro incorrecto.");
@@ -214,16 +214,16 @@ else:
               function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // 1. Dibujar Asfalto de la carretera
+                // Asfalto
                 ctx.fillStyle = "#1e293b";
-                ctx.fillRect(15, 0, 420, 350);
+                ctx.fillRect(15, 0, 420, 300);
 
-                // 2. Bordes de la pista (líneas rojas y blancas)
+                // Bordes de pista
                 ctx.fillStyle = "#ef4444";
-                ctx.fillRect(15, 0, 8, 350);
-                ctx.fillRect(427, 0, 8, 350);
+                ctx.fillRect(15, 0, 8, 300);
+                ctx.fillRect(427, 0, 8, 300);
 
-                // 3. Líneas divisorias de los 5 carriles en movimiento
+                // Líneas de carriles en movimiento
                 ctx.strokeStyle = "#94a3b8";
                 ctx.lineWidth = 3;
                 ctx.setLineDash([20, 20]);
@@ -231,37 +231,37 @@ else:
                 for(let i=1; i<5; i++) {
                   ctx.beginPath();
                   ctx.moveTo(15 + i*84, 0);
-                  ctx.lineTo(15 + i*84, 350);
+                  ctx.lineTo(15 + i*84, 300);
                   ctx.stroke();
                 }
                 ctx.setLineDash([]);
 
-                // 4. Dibujar los bloques de números en cada carril bajando
+                // Bloques bajando por carriles
                 for(let i=0; i<5; i++) {
                   let val = currentCh.opts[i];
                   let isCorrect = (val === currentCh.correct);
 
                   ctx.fillStyle = isCorrect ? "#22c55e" : "#ef4444";
-                  ctx.fillRect(lanes[i] - 32, obstacleY, 64, 45);
+                  ctx.fillRect(lanes[i] - 32, obstacleY, 64, 42);
                   ctx.strokeStyle = "#ffffff";
                   ctx.lineWidth = 2;
-                  ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 45);
+                  ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 42);
 
                   ctx.fillStyle = "#ffffff";
-                  ctx.font = "bold 20px sans-serif";
-                  ctx.fillText(val, lanes[i] - 10, obstacleY + 28);
+                  ctx.font = "bold 18px sans-serif";
+                  ctx.fillText(val, lanes[i] - 10, obstacleY + 26);
                 }
 
-                // 5. Dibujar el coche de F1 del jugador
+                // Coche de F1
                 let carX = lanes[currentLane];
                 ctx.fillStyle = "#facc15";
-                ctx.fillRect(carX - 16, carY, 32, 55);
+                ctx.fillRect(carX - 16, carY, 32, 50);
                 ctx.fillStyle = "#0f172a";
-                ctx.fillRect(carX - 10, carY + 15, 20, 20);
+                ctx.fillRect(carX - 10, carY + 12, 20, 18);
                 ctx.fillStyle = "#38bdf8";
                 ctx.fillRect(carX - 22, carY - 2, 44, 6);
                 ctx.fillStyle = "#ef4444";
-                ctx.fillRect(carX - 20, carY + 48, 40, 8);
+                ctx.fillRect(carX - 20, carY + 44, 40, 6);
               }
 
               function loop() {
@@ -277,7 +277,7 @@ else:
             </html>
             """
 
-            st.components.v1.html(f1_canvas_game, height=500)
+            st.components.v1.html(f1_canvas_game, height=520)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:

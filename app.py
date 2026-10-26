@@ -3,6 +3,7 @@ import random
 import json
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Derivative Arcade Universe", page_icon="🏎️", layout="centered")
 
@@ -34,12 +35,17 @@ if st.session_state.current_user is None:
             clean_name = nickname.strip()
             st.session_state.current_user = clean_name
             if clean_name not in st.session_state.users:
-                st.session_state.users[clean_name] = {"score": 0, "streak": 0, "corrects": 0, "errors": 0}
+                st.session_state.users[clean_name] = {
+                    "score": 0, "streak": 0, "corrects": 0, "errors": 0,
+                    "scores_by_game": {"F1": 0, "Globos": 0, "Tenis": 0, "Tetris": 0, "Jefe": 0}
+                }
                 save_users(st.session_state.users)
             st.session_state.screen = "map"
             st.rerun()
 else:
     u_data = st.session_state.users[st.session_state.current_user]
+    if "scores_by_game" not in u_data:
+        u_data["scores_by_game"] = {"F1": 0, "Globos": 0, "Tenis": 0, "Tetris": 0, "Jefe": 0}
 
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
     with col1:
@@ -49,7 +55,7 @@ else:
             st.session_state.screen = "login"
             st.rerun()
     with col2: st.metric("🔥 Racha", u_data["streak"])
-    with col3: st.metric("🏆 Pts", u_data["score"])
+    with col3: st.metric("🏆 Pts Total", u_data["score"])
     with col4:
         if st.button("📊 Informe"):
             st.session_state.screen = "summary"
@@ -57,43 +63,69 @@ else:
 
     st.markdown("---")
 
-    # ================= FASE 0: MENÚ PRINCIPAL Y SLIDER =================
+    # ================= FASE 0: MENÚ PRINCIPAL Y GRÁFICA INTERACTIVA =================
     if st.session_state.screen == "map":
-        st.markdown("## 🗺️ Fase 0: Menú Principal y Explicación de la Derivada")
+        st.markdown("## 🗺️ Fase 0: Menú Principal y Gráfica Interactiva")
         st.markdown("### 📈 La Derivada como la Pendiente de la Recta Tangente ($m = f'(x)$)")
-        st.write("Antes de entrar a la pista, visualiza cómo la derivada en un punto es exactamente la pendiente de la recta tangente usando el simulador:")
+        st.write("Elige una función y mueve el slider para ver cómo la **recta tangente** se desplaza por la curva y cómo cambia su pendiente ($m$) en tiempo real:")
 
         func_choice = st.selectbox("Elige una función f(x):", ["x²", "x³", "sin(x)", "eˣ"])
         x_val = st.slider("Mueve el punto x en la curva:", -3.0, 3.0, 1.0, 0.1)
 
+        # Generar Gráfica con Matplotlib
+        fig, ax = plt.subplots(figsize=(6, 3.5))
+        fig.patch.set_facecolor('#0f172a')
+        ax.set_facecolor('#1e293b')
+
+        x_vals = np.linspace(-3.5, 3.5, 200)
         if func_choice == "x²":
+            y_vals = x_vals ** 2
             y_val = x_val ** 2
             deriv_val = 2 * x_val
             func_name_str = "f(x) = x²"
         elif func_choice == "x³":
+            y_vals = x_vals ** 3
             y_val = x_val ** 3
             deriv_val = 3 * (x_val ** 2)
             func_name_str = "f(x) = x³"
         elif func_choice == "sin(x)":
-            y_val = float(np.sin(x_val))
-            deriv_val = float(np.cos(x_val))
+            y_vals = np.sin(x_vals)
+            y_val = np.sin(x_val)
+            deriv_val = np.cos(x_val)
             func_name_str = "f(x) = sin(x)"
         else:
-            y_val = float(np.exp(x_val))
-            deriv_val = float(np.exp(x_val))
+            y_vals = np.exp(x_vals)
+            y_val = np.exp(x_val)
+            deriv_val = np.exp(x_val)
             func_name_str = "f(x) = eˣ"
 
-        st.info(f"📊 **Función seleccionada:** `{func_name_str}`  \n📍 **Punto x:** `{x_val:.2f}` | **y:** `{y_val:.2f}`  \n🎯 **Pendiente de la recta tangente ($m = f'(x)$):** `{deriv_val:.2f}`")
+        # Ecuación de la recta tangente: y - y_0 = m(x - x_0) => y = m(x - x_0) + y_0
+        tangent_y = deriv_val * (x_vals - x_val) + y_val
+
+        ax.plot(x_vals, y_vals, color='#38bdf8', linewidth=2.5, label=func_name_str)
+        ax.plot(x_vals, tangent_y, color='#f43f5e', linestyle='--', linewidth=2, label=f"Tangente (m = {deriv_val:.2f})")
+        ax.scatter([x_val], [y_val], color='#facc15', s=70, zorder=5)
+
+        ax.set_xlim(-3.5, 3.5)
+        ax.set_ylim(min(y_vals.min() - 2, -5), max(y_vals.max() + 2, 10))
+        ax.axhline(0, color='#64748b', linewidth=1)
+        ax.axvline(0, color='#64748b', linewidth=1)
+        ax.tick_params(colors='white')
+        ax.legend(facecolor='#0f172a', edgecolor='none', labelcolor='white')
+        
+        st.pyplot(fig)
+
+        st.info(f"📊 **Función:** `{func_name_str}` | **Punto x:** `{x_val:.2f}`  \n🎯 **Pendiente de la recta tangente ($m = f'(x)$):** `{deriv_val:.2f}`")
 
         st.markdown("---")
-        st.write("Selecciona una fase arcade para poner a prueba tus reflejos con 10 funciones:")
+        st.write("Selecciona una fase arcade para superar las 10 funciones y acumular puntos en tu marcador:")
         
         worlds = [
             (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista Arcade)"),
-            (2, "Fase 2: 🎈 Fragua Polinómica (Cinta de Globos Neutros)"),
-            (3, "Fase 3: 🎾 Tenis Trascendente (Juego de Pala y Rebote)"),
+            (2, "Fase 2: 🎈 Fragua Polinómica (Cinta de Globos)"),
+            (3, "Fase 3: 🎾 Tenis Trascendente (Juego de Pala)"),
             (4, "Fase 4: 🧱 Tetris de Productos (Piezas Geométricas)"),
-            (5, "Fase 5: ⚔️ Jefe Final Regla de la Cadena (Combate de 10 Oleadas)")
+            (5, "Fase 5: ⚔️ Jefe Final Regla de la Cadena (Combate)")
         ]
         
         for wid, wname in worlds:
@@ -103,7 +135,7 @@ else:
                 st.rerun()
 
         st.markdown("---")
-        if st.button("📊 Ver Informe Final", use_container_width=True):
+        if st.button("📊 Ver Informe y Puntuaciones Finales", use_container_width=True):
             st.session_state.screen = "summary"
             st.rerun()
 
@@ -186,7 +218,11 @@ else:
                   let chosen = q.opts[lane];
                   if(chosen === q.corr) {
                     pts += 200; step++;
-                    if(step > 10) { alert("🏆 ¡VICTORIA! Has superado las 10 funciones."); step = 1; pts = 0; }
+                    if(step > 10) { 
+                      alert("🏆 ¡VICTORIA! Has completado Fase F1. Puntos ganados: " + pts); 
+                      window.parent.postMessage({type: 'F1_DONE', score: pts}, '*');
+                      step = 1; pts = 0; 
+                    }
                     q = questions[(step-1)%questions.length];
                     resetQ();
                   } else {
@@ -215,11 +251,11 @@ else:
             st.components.v1.html(f1_code, height=400)
 
         # -------------------------------------------------------------
-        # MUNDO 2: FRAGUA POLINÓMICA (Globos Neutros - 10 Funciones)
+        # MUNDO 2: FRAGUA POLINÓMICA (10 Funciones)
         # -------------------------------------------------------------
         elif b == 2:
             st.subheader("🎈 Fase 2: Fragua Polinómica (10 Funciones)")
-            st.markdown("Los globos suben de la fragua. Pincha el correcto antes de que suban.")
+            st.markdown("Pincha el globo correcto antes de que suba.")
 
             balloons_code = """
             <!DOCTYPE html>
@@ -266,7 +302,10 @@ else:
                   if(Math.hypot(mx - item.x, my - item.y) < item.radius) {
                     if(item.text === lvl.corr) {
                       score += 150; step++;
-                      if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas."); step = 1; score = 0; }
+                      if(step > 10) { 
+                        alert("🏆 ¡VICTORIA! Fragua completada. Puntos: " + score); 
+                        step = 1; score = 0; 
+                      }
                       lvl = levels[(step-1)%levels.length];
                       document.getElementById("bft").innerText = `f(x) = ${lvl.f}`;
                       spawnBalloons();
@@ -295,7 +334,7 @@ else:
             st.components.v1.html(balloons_code, height=370)
 
         # -------------------------------------------------------------
-        # MUNDO 3: TENIS TRASCENDENTE (Pelota Neutra - 10 Funciones)
+        # MUNDO 3: TENIS TRASCENDENTE (10 Funciones)
         # -------------------------------------------------------------
         elif b == 3:
             st.subheader("🎾 Fase 3: Tenis Trascendente (10 Funciones)")
@@ -369,7 +408,7 @@ else:
                 if(ball.y >= paddleY - 10 && ball.y <= paddleY + 15 && ball.x >= paddleX && ball.x <= paddleX + paddleWidth) {
                   if(ball.text === currR.corr) {
                     score += 200; step++;
-                    if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas en Tenis."); step = 1; score = 0; }
+                    if(step > 10) { alert("🏆 ¡VICTORIA! Tenis completado. Puntos: " + score); step = 1; score = 0; }
                     currR = rounds[(step-1)%rounds.length];
                     document.getElementById("tft").innerText = `f(x) = ${currR.f}`;
                   } else {
@@ -409,7 +448,7 @@ else:
             st.components.v1.html(tennis_code, height=430)
 
         # -------------------------------------------------------------
-        # MUNDO 4: TETRIS DE PRODUCTOS (Piezas Neutras - 10 Funciones)
+        # MUNDO 4: TETRIS DE PRODUCTOS (10 Funciones)
         # -------------------------------------------------------------
         elif b == 4:
             st.subheader("🧱 Fase 4: Tetris de Productos (10 Funciones)")
@@ -481,7 +520,7 @@ else:
                   if(mx > p.x - 35 && mx < p.x + 35 && my > p.y - 35 && my < p.y + 35) {
                     if(p.text === currTet.corr) {
                       score += 250; step++;
-                      if(step > 10) { alert("🏆 ¡VICTORIA! 10 funciones superadas en Tetris."); step = 1; score = 0; }
+                      if(step > 10) { alert("🏆 ¡VICTORIA! Tetris completado. Puntos: " + score); step = 1; score = 0; }
                       currTet = tetrisData[(step-1)%tetrisData.length];
                       document.getElementById("tfunc").innerText = `f(x) = ${currTet.f}`;
                       spawnTetrisPieces();
@@ -568,7 +607,7 @@ else:
             <script>
               const canvas = document.getElementById("bc");
               const ctx = canvas.getContext("2d");
-              let bossLife = 5, wave = 1;
+              let bossLife = 5, wave = 1, bossScore = 0;
               const bosses = [
                 { f: "sin(4x²)", corr: "cos(4x²) · 8x", opts: ["cos(4x²)", "cos(4x²) · 8x", "-sin(4x²) · 8x", "8x·sin(4x²)"] },
                 { f: "(3x + 1)⁵", corr: "5(3x + 1)⁴ · 3", opts: ["5(3x + 1)⁴", "5(3x + 1)⁴ · 3", "(3x + 1)⁴ · 15", "3(3x + 1)⁴"] },
@@ -597,8 +636,8 @@ else:
 
               function checkAttack(val) {
                 if(val === currBoss.corr) {
-                  bossLife--; wave++;
-                  if(wave > 10) { alert("🏆 ¡VICTORIA TOTAL! Has derrotado las 10 oleadas del Jefe."); wave = 1; bossLife = 5; }
+                  bossLife--; wave++; bossScore += 100;
+                  if(wave > 10) { alert("🏆 ¡VICTORIA TOTAL! Jefe derrotado. Puntos: " + bossScore); wave = 1; bossLife = 5; bossScore = 0; }
                   else if(bossLife <= 0) { alert("💥 ¡Jefe derrotado en esta ronda! Siguiente oleada."); bossLife = 5; }
                   else { alert("💥 ¡Ataque exitoso!"); }
                   currBoss = bosses[(wave-1)%bosses.length];
@@ -626,13 +665,30 @@ else:
             """
             st.components.v1.html(boss_code, height=390)
 
-    # ================= PANTALLA 3: INFORME =================
+    # ================= PANTALLA 3: INFORME Y PUNTUACIÓN FINAL =================
     elif st.session_state.screen == "summary":
-        st.markdown(f"## 📊 Informe de Piloto de `{st.session_state.current_user}`")
+        st.markdown(f"## 📊 Informe y Marcador de Piloto: `{st.session_state.current_user}`")
+        
+        # Calcular puntuación total sumando los juegos
+        total_score = u_data["score"]
+        
         col1, col2, col3 = st.columns(3)
-        col1.metric("Puntuación Total", f"{u_data['score']} PTS")
+        col1.metric("🏆 Puntuación Final Total", f"{total_score} PTS")
         col2.metric("Aciertos", u_data["corrects"])
         col3.metric("Errores", u_data["errors"])
+        
+        st.markdown("---")
+        st.subheader("📋 Desglose de Puntuación por Minijuego Arcade:")
+        
+        scores_dict = u_data["scores_by_game"]
+        st.markdown(f"""
+        * 🏎️ **Fase 1 (Gran Premio F1):** `{scores_dict.get('F1', 0)} PTS`
+        * 🎈 **Fase 2 (Fragua Polinómica):** `{scores_dict.get('Globos', 0)} PTS`
+        * 🎾 **Fase 3 (Tenis Trascendente):** `{scores_dict.get('Tenis', 0)} PTS`
+        * 🧱 **Fase 4 (Tetris de Productos):** `{scores_dict.get('Tetris', 0)} PTS`
+        * ⚔️ **Fase 5 (Jefe Final Cadena):** `{scores_dict.get('Jefe', 0)} PTS`
+        """)
+        
         st.markdown("---")
         if st.button("🗺️ Volver al Menú Principal (Fase 0)", use_container_width=True):
             st.session_state.screen = "map"

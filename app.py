@@ -84,10 +84,10 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 CON FUNCIÓN Y PUNTO VISIBLES EN PISTA
+        # MUNDO 1: CARRERA DE F1 CON PANEL AMPLIADO Y CARRIL SELECCIONADO EN VERDE
         if b == 1:
             st.subheader("🏎️ Gran Premio F1: Carretera en Movimiento Real")
-            st.markdown("Mira el **enunciado en pantalla**, usa los botones o las **flechas del teclado** para mover tu coche de F1 entre los 5 carriles y atrapa la derivada correcta durante 7 vueltas.")
+            st.markdown("El carril donde se sitúa tu coche se marca en **verde brillante**. Usa las flechas o botones para moverte y superar las 7 vueltas.")
 
             f1_canvas_game = """
             <!DOCTYPE html>
@@ -95,7 +95,6 @@ else:
             <head>
             <style>
               body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; }
-              #game-container { display: inline-block; position: relative; }
               canvas { background-color: #0f172a; border: 4px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 25px rgba(56,189,248,0.4); display: block; margin: 0 auto; }
               .controls { margin-top: 15px; }
               .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -107,14 +106,15 @@ else:
                 Vuelta: <span id="lapDisplay">1</span> / 7 &nbsp;|&nbsp; Vidas: <span id="livesDisplay">❤️❤️❤️</span> &nbsp;|&nbsp; Puntos: <span id="scoreDisplay">0</span>
               </div>
               
-              <!-- PANEL VISIBLE DE LA FUNCIÓN Y EL PUNTO -->
-              <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #f43f5e; border-radius: 10px; padding: 10px; width: 430px; margin: 0 auto 10px auto; text-align: center;">
-                <div style="color: #94a3b8; font-size: 12px; font-weight: bold; text-transform: uppercase;">Reto de Derivada en un Punto</div>
-                <div id="funcText" style="color: #38bdf8; font-size: 22px; font-weight: 900; margin-top: 4px;">f(x) = x² &nbsp;|&nbsp; x = 3</div>
-                <div id="questionPrompt" style="color: #f43f5e; font-size: 15px; font-weight: bold; margin-top: 2px;">Calcula f'(3)</div>
+              <!-- PANEL AMPLIADO SIN CORTES PARA LA FUNCIÓN Y EL PUNTO -->
+              <div style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid #38bdf8; border-radius: 12px; padding: 15px; width: 440px; margin: 0 auto 10px auto; text-align: center; box-shadow: 0 0 15px rgba(56,189,248,0.2);">
+                <div style="color: #38bdf8; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Reto Activo de Derivada</div>
+                <div id="funcText" style="color: #f8fafc; font-size: 24px; font-weight: 900; margin-top: 6px; word-break: break-all;">f(x) = x² &nbsp;|&nbsp; x = 3</div>
+                <div id="questionPrompt" style="color: #f43f5e; font-size: 16px; font-weight: bold; margin-top: 4px;">Calcula f'(3)</div>
+                <div id="statusAlert" style="color: #22c55e; font-size: 14px; font-weight: bold; margin-top: 6px; min-height: 20px;"></div>
               </div>
 
-              <canvas id="f1Canvas" width="450" height="300"></canvas>
+              <canvas id="f1Canvas" width="450" height="280"></canvas>
 
               <div class="controls">
                 <button class="btn-move" onclick="moveCar(-1)">⬅️ Izquierda</button>
@@ -127,7 +127,7 @@ else:
 
               const lanes = [45, 135, 225, 315, 405];
               let currentLane = 2;
-              const carY = 220;
+              const carY = 200;
 
               let lap = 1;
               let lives = 3;
@@ -135,7 +135,7 @@ else:
               let roadOffset = 0;
 
               let obstacleY = -100;
-              let speed = 1.8;
+              let speed = 1.6;
 
               const challenges = [
                 { f: "x²", x: 3, correct: 6, opts: [2, 4, 6, 9, 12] },
@@ -149,16 +149,19 @@ else:
 
               let currentCh = challenges[0];
 
-              function updateUI() {
+              function updateUI(msg = "", isError = false) {
                 document.getElementById("lapDisplay").innerText = lap;
                 document.getElementById("scoreDisplay").innerText = score;
                 let h = "";
                 for(let i=0; i<lives; i++) h += "❤️";
                 document.getElementById("livesDisplay").innerText = h;
                 
-                // Actualizar panel superior con la función y el punto actual
                 document.getElementById("funcText").innerHTML = `f(x) = ${currentCh.f} &nbsp;|&nbsp; x = ${currentCh.x}`;
                 document.getElementById("questionPrompt").innerText = `Calcula f'(${currentCh.x})`;
+                
+                const alertBox = document.getElementById("statusAlert");
+                alertBox.innerText = msg;
+                alertBox.style.color = isError ? "#ef4444" : "#22c55e";
               }
 
               function moveCar(dir) {
@@ -197,17 +200,18 @@ else:
                     } else {
                       currentCh = challenges[lap - 1];
                     }
+                    updateUI("🎉 ¡EXCELENTE! ¡Acierto!", false);
                     resetObstacles();
                   } else {
                     lives--;
                     if (lives <= 0) {
-                      alert("💥 ¡GAME OVER! Te has estrellado contra el muro incorrecto.");
+                      alert("💥 ¡GAME OVER! Te has estrellado demasiadas veces.");
                       lives = 3; lap = 1; score = 0;
                       currentCh = challenges[0];
                     }
+                    updateUI("❌ ¡ERROR! Te has estrellado contra el muro incorrecto.", true);
                     resetObstacles();
                   }
-                  updateUI();
                 }
               }
 
@@ -216,12 +220,12 @@ else:
 
                 // Asfalto
                 ctx.fillStyle = "#1e293b";
-                ctx.fillRect(15, 0, 420, 300);
+                ctx.fillRect(15, 0, 420, 280);
 
                 // Bordes de pista
                 ctx.fillStyle = "#ef4444";
-                ctx.fillRect(15, 0, 8, 300);
-                ctx.fillRect(427, 0, 8, 300);
+                ctx.fillRect(15, 0, 8, 280);
+                ctx.fillRect(427, 0, 8, 280);
 
                 // Líneas de carriles en movimiento
                 ctx.strokeStyle = "#94a3b8";
@@ -231,21 +235,21 @@ else:
                 for(let i=1; i<5; i++) {
                   ctx.beginPath();
                   ctx.moveTo(15 + i*84, 0);
-                  ctx.lineTo(15 + i*84, 300);
+                  ctx.lineTo(15 + i*84, 280);
                   ctx.stroke();
                 }
                 ctx.setLineDash([]);
 
-                // Bloques bajando por carriles
+                // Bloques bajando por carriles (El carril donde está el coche se marca en VERDE brillante)
                 for(let i=0; i<5; i++) {
                   let val = currentCh.opts[i];
-                  let isCorrect = (val === currentCh.correct);
+                  let isSelected = (i === currentLane);
 
-                  ctx.fillStyle = isCorrect ? "#22c55e" : "#ef4444";
-                  ctx.fillRect(lanes[i] - 32, obstacleY, 64, 42);
-                  ctx.strokeStyle = "#ffffff";
-                  ctx.lineWidth = 2;
-                  ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 42);
+                  ctx.fillStyle = isSelected ? "#22c55e" : "#334155";
+                  ctx.fillRect(lanes[i] - 32, obstacleY, 64, 40);
+                  ctx.strokeStyle = isSelected ? "#facc15" : "#ffffff";
+                  ctx.lineWidth = isSelected ? 3 : 1;
+                  ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 40);
 
                   ctx.fillStyle = "#ffffff";
                   ctx.font = "bold 18px sans-serif";
@@ -254,14 +258,14 @@ else:
 
                 // Coche de F1
                 let carX = lanes[currentLane];
+                ctx.fillStyle = "#22c55e"; // Base verde para destacar tu posición
+                ctx.fillRect(carX - 18, carY - 5, 36, 60);
                 ctx.fillStyle = "#facc15";
-                ctx.fillRect(carX - 16, carY, 32, 50);
+                ctx.fillRect(carX - 14, carY, 28, 45);
                 ctx.fillStyle = "#0f172a";
-                ctx.fillRect(carX - 10, carY + 12, 20, 18);
-                ctx.fillStyle = "#38bdf8";
-                ctx.fillRect(carX - 22, carY - 2, 44, 6);
+                ctx.fillRect(carX - 9, carY + 10, 18, 16);
                 ctx.fillStyle = "#ef4444";
-                ctx.fillRect(carX - 20, carY + 44, 40, 6);
+                ctx.fillRect(carX - 18, carY + 42, 36, 6);
               }
 
               function loop() {
@@ -277,7 +281,7 @@ else:
             </html>
             """
 
-            st.components.v1.html(f1_canvas_game, height=520)
+            st.components.v1.html(f1_canvas_game, height=525)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
@@ -298,7 +302,7 @@ else:
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
-                        st.error("¡Incorrecto!")
+                        st.error("¡Error! Respuesta incorrecta.")
                         u_data["streak"] = 0
                         u_data["errors"] += 1
                         save_users(st.session_state.users)
@@ -321,7 +325,7 @@ else:
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
-                        st.error("¡Incorrecto!")
+                        st.error("¡Error! Respuesta incorrecta.")
                         u_data["streak"] = 0
                         u_data["errors"] += 1
                         save_users(st.session_state.users)
@@ -344,7 +348,7 @@ else:
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
-                        st.error("¡Incorrecto!")
+                        st.error("¡Error! Respuesta incorrecta.")
                         u_data["streak"] = 0
                         u_data["errors"] += 1
                         save_users(st.session_state.users)
@@ -366,7 +370,7 @@ else:
                         save_users(st.session_state.users)
                         st.rerun()
                     else:
-                        st.error("¡Ataque bloqueado!")
+                        st.error("¡Error! Ataque bloqueado.")
                         u_data["streak"] = 0
                         u_data["errors"] += 1
                         save_users(st.session_state.users)

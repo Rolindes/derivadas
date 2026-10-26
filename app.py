@@ -3,7 +3,7 @@ import random
 import json
 import os
 
-st.set_page_config(page_title="Derivative F1 Grand Prix", page_icon="🏎️", layout="centered")
+st.set_page_config(page_title="Derivative F1 Arcade", page_icon="🏎️", layout="centered")
 
 DATA_FILE = "users_progress.json"
 
@@ -23,47 +23,9 @@ if "current_user" not in st.session_state: st.session_state.current_user = None
 if "screen" not in st.session_state: st.session_state.screen = "login"
 if "active_block" not in st.session_state: st.session_state.active_block = 1
 
-# Estado seguro de la carrera de F1
-if "f1_game" not in st.session_state:
-    st.session_state.f1_game = {
-        "lap": 1,
-        "lives": 3,
-        "speed": 180,
-        "car_lane": 2, # Carril central (0 a 4)
-        "func_text": "x²",
-        "x_point": 3,
-        "correct_ans": 6,
-        "options": [2, 4, 6, 9, 12]
-    }
-else:
-    if "car_lane" not in st.session_state.f1_game: st.session_state.f1_game["car_lane"] = 2
-    if "lap" not in st.session_state.f1_game: st.session_state.f1_game["lap"] = 1
-    if "lives" not in st.session_state: st.session_state.f1_game["lives"] = 3
-    if "options" not in st.session_state.f1_game or len(st.session_state.f1_game["options"]) != 5:
-        st.session_state.f1_game["options"] = [2, 4, 6, 9, 12]
-
-def generate_f1_challenge():
-    pool = [
-        ("x²", 3, 6, [2, 4, 6, 9, 12]),
-        ("x³", 2, 12, [4, 8, 12, 16, 6]),
-        ("5x", 4, 5, [20, 10, 5, 25, 0]),
-        ("x³ - 3x", 2, 9, [3, 6, 9, 12, 15]),
-        ("sin(x)", 0, 1, [-1, 0, 1, 2, -2]),
-        ("2x² + 1", 3, 12, [6, 12, 18, 24, 9]),
-        ("x⁴", 1, 4, [1, 2, 3, 4, 8])
-    ]
-    lap_idx = (st.session_state.f1_game["lap"] - 1) % len(pool)
-    f_txt, x_pt, corr, opts = pool[lap_idx]
-    random.shuffle(opts)
-    st.session_state.f1_game["func_text"] = f_txt
-    st.session_state.f1_game["x_point"] = x_pt
-    st.session_state.f1_game["correct_ans"] = corr
-    st.session_state.f1_game["options"] = opts
-    st.session_state.f1_game["car_lane"] = 2
-
 # ================= PANTALLA 0: APODO =================
 if st.session_state.current_user is None:
-    st.markdown("## 🏎️ DERIVATIVE F1 GRAND PRIX")
+    st.markdown("## 🏎️ DERIVATIVE F1 ARCADE")
     st.write("Introduce tu apodo de piloto:")
     nickname = st.text_input("Tu apodo:")
     if st.button("🏁 ¡Arrancar Motor!", use_container_width=True):
@@ -98,7 +60,7 @@ else:
     if st.session_state.screen == "map":
         st.markdown("## 🗺️ Circuito Mundial - Mapa de Fases")
         worlds = [
-            (1, "Fase 1: 🏎️ Gran Premio F1 (Autopista de 5 Carriles - 7 Vueltas)"),
+            (1, "Fase 1: 🏎️ Gran Premio F1 Arcade (Carretera Real en Movimiento)"),
             (2, "Fase 2: 🎈 Fragua Polinómica"),
             (3, "Fase 3: 🎯 Bosque Trascendente"),
             (4, "Fase 4: 📦 Torre de Productos"),
@@ -109,7 +71,6 @@ else:
                 if st.button(f"🎮 Jugar -> {wname}", key=f"w_{wid}", use_container_width=True):
                     st.session_state.active_block = wid
                     st.session_state.screen = "game"
-                    if wid == 1: generate_f1_challenge()
                     st.rerun()
             else:
                 st.button(f"🔒 {wname} (Bloqueado)", key=f"w_{wid}", disabled=True, use_container_width=True)
@@ -123,93 +84,200 @@ else:
             st.rerun()
         st.markdown("---")
 
-        # MUNDO 1: CARRERA DE F1 CON 5 CARRILES NATIVOS
+        # MUNDO 1: CARRERA DE F1 REAL CON MOTOR HTML5 CANVAS EN MOVIMIENTO
         if b == 1:
-            st.subheader("🏎️ Gran Premio F1: Autopista de Derivadas")
-            
-            lives_display = "❤️" * st.session_state.f1_game["lives"] + "🖤" * (3 - st.session_state.f1_game["lives"])
-            c_t1, c_t2, c_t3 = st.columns(3)
-            c_t1.markdown(f"### 🛡️ Vidas: {lives_display}")
-            c_t2.markdown(f"### 🔄 Vuelta: {st.session_state.f1_game['lap']} / 7")
-            c_t3.markdown(f"### ⚡ Velocidad: {st.session_state.f1_game['speed']} km/h")
-            
-            func = st.session_state.f1_game['func_text']
-            x_pt = st.session_state.f1_game['x_point']
-            opts = st.session_state.f1_game['options']
-            current_lane = st.session_state.f1_game["car_lane"]
+            st.subheader("🏎️ Gran Premio F1: Carretera en Movimiento Real")
+            st.markdown("Disfruta de la **carretera de 5 carriles en movimiento real**. Usa los botones de abajo o las **flechas del teclado** para mover tu coche de F1 de un carril a otro, esquivar los muros y atrapar el número de la **derivada correcta** durante 7 vueltas.")
 
-            # Panel del reto actual
-            st.markdown(f"""
-            ### 🏁 OBJETIVO DE LA VUELTA {st.session_state.f1_game['lap']} / 7
-            Calcula la derivada: **f'( {x_pt} )** para la función **f(x) = {func}**
-            """)
-            
-            st.markdown("---")
-            st.markdown("### 🛣️ PISTA DE 5 CARRILES EN MOVIMIENTO")
+            f1_canvas_game = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <style>
+              body { background-color: #020617; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; }
+              #game-container { display: inline-block; position: relative; }
+              canvas { background-color: #0f172a; border: 4px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 25px rgba(56,189,248,0.4); display: block; margin: 0 auto; }
+              .controls { margin-top: 15px; }
+              .btn-move { background-color: #2563eb; color: white; border: none; padding: 14px 30px; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+              .btn-move:hover { background-color: #1d4ed8; }
+            </style>
+            </head>
+            <body>
+              <div style="margin-bottom: 8px; font-weight: bold; font-size: 16px; color: #fbbf24;">
+                Vuelta: <span id="lapDisplay">1</span> / 7 &nbsp;|&nbsp; Vidas: <span id="livesDisplay">❤️❤️❤️</span> &nbsp;|&nbsp; Puntos: <span id="scoreDisplay">0</span>
+              </div>
+              <div id="challengeText" style="margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #f43f5e;">
+                Calcula f'(3) para f(x) = x²
+              </div>
 
-            # Representación visual nativa en columnas de Streamlit (limpia y sin fallos)
-            lane_cols = st.columns(5)
-            for i in range(5):
-                with lane_cols[i]:
-                    if i == current_lane:
-                        st.markdown("#### 🏎️ [ TÚ ]")
-                        st.success(f"### {opts[i]}")
-                    else:
-                        st.markdown(f"Carril {i+1}")
-                        st.info(f"### {opts[i]}")
+              <canvas id="f1Canvas" width="450" height="350"></canvas>
 
-            st.markdown("<br>", unsafe_allow_html=True)
+              <div class="controls">
+                <button class="btn-move" onclick="moveCar(-1)">⬅️ Izquierda</button>
+                <button class="btn-move" onclick="moveCar(1)">Derecha ➡️</button>
+              </div>
 
-            # Botones del volante para cambiar de carril
-            col_mv1, col_mv2, col_mv3 = st.columns([1, 2, 1])
-            with col_mv1:
-                if st.button("⬅️ Mover Izquierda", use_container_width=True):
-                    if st.session_state.f1_game["car_lane"] > 0:
-                        st.session_state.f1_game["car_lane"] -= 1
-                        st.rerun()
-            with col_mv3:
-                if st.button("Mover Derecha ➡️", use_container_width=True):
-                    if st.session_state.f1_game["car_lane"] < 4:
-                        st.session_state.f1_game["car_lane"] += 1
-                        st.rerun()
+            <script>
+              const canvas = document.getElementById("f1Canvas");
+              const ctx = canvas.getContext("2d");
 
-            st.markdown("<br>", unsafe_allow_html=True)
+              // 5 carriles en coordenadas X
+              const lanes = [45, 135, 225, 315, 405];
+              let currentLane = 2; // Empieza en el carril central
+              const carY = 270;
 
-            # Botón de acelerar / pasar por el carril actual
-            if st.button("🚀 ACELERAR Y PASAR POR ESTE CARRIL", use_container_width=True):
-                chosen_val = opts[current_lane]
-                
-                if chosen_val == st.session_state.f1_game["correct_ans"]:
-                    st.session_state.f1_game["speed"] += 25
-                    u_data["score"] += 200
-                    u_data["streak"] += 1
-                    u_data["corrects"] += 1
-                    
-                    if st.session_state.f1_game["lap"] < 7:
-                        st.success(f"🎉 ¡Vuelta {st.session_state.f1_game['lap']} superada! Avanzando en la autopista...")
-                        st.session_state.f1_game["lap"] += 1
-                        generate_f1_challenge()
-                    else:
-                        st.success("🏆 ¡BANDERA A CUADROS! ¡Has completado las 7 vueltas y ganado el Gran Premio!")
-                        u_data["unlocked"] = 2
-                        st.session_state.screen = "map"
-                    
-                    save_users(st.session_state.users)
-                    st.rerun()
-                else:
-                    st.session_state.f1_game["lives"] -= 1
-                    u_data["streak"] = 0
-                    u_data["errors"] += 1
-                    save_users(st.session_state.users)
-                    
-                    if st.session_state.f1_game["lives"] <= 0:
-                        st.error("💥 ¡CRASH! Te has estrellado contra el muro del error. Fin de la carrera.")
-                        st.session_state.f1_game["lives"] = 3
-                        st.session_state.f1_game["lap"] = 1
-                        st.session_state.screen = "map"
-                        st.rerun()
-                    else:
-                        st.error(f"❌ ¡Muro incorrecto! Te quedan {st.session_state.f1_game['lives']} vidas.")
+              let lap = 1;
+              let lives = 3;
+              let score = 0;
+              let roadOffset = 0;
+
+              // Obstáculos en los 5 carriles que bajan
+              let obstacleY = -100;
+              let speed = 2;
+
+              const challenges = [
+                { f: "x²", x: 3, correct: 6, opts: [2, 4, 6, 9, 12] },
+                { f: "x³", x: 2, correct: 12, opts: [4, 8, 12, 16, 6] },
+                { f: "5x", x: 4, correct: 5, opts: [20, 10, 5, 25, 0] },
+                { f: "x³ - 3x", x: 2, correct: 9, opts: [3, 6, 9, 12, 15] },
+                { f: "sin(x)", x: 0, correct: 1, opts: [-1, 0, 1, 2, -2] },
+                { f: "2x² + 1", x: 3, correct: 12, opts: [6, 12, 18, 24, 9] },
+                { f: "x⁴", x: 1, correct: 4, opts: [1, 2, 3, 4, 8] }
+              ];
+
+              let currentCh = challenges[0];
+
+              function updateUI() {
+                document.getElementById("lapDisplay").innerText = lap;
+                document.getElementById("scoreDisplay").innerText = score;
+                let h = "";
+                for(let i=0; i<lives; i++) h += "❤️";
+                document.getElementById("livesDisplay").innerText = h;
+                document.getElementById("challengeText").innerText = `Calcula f'(${currentCh.x}) para f(x) = ${currentCh.f}`;
+              }
+
+              function moveCar(dir) {
+                currentLane += dir;
+                if (currentLane < 0) currentLane = 0;
+                if (currentLane > 4) currentLane = 4;
+              }
+
+              window.addEventListener('keydown', function(e) {
+                if (e.key === "ArrowLeft") moveCar(-1);
+                if (e.key === "ArrowRight") moveCar(1);
+              });
+
+              function resetObstacles() {
+                obstacleY = -120;
+                currentCh.opts.sort(() => Math.random() - 0.5);
+              }
+
+              resetObstacles();
+
+              function update() {
+                // Movimiento de la carretera (líneas discontinuas bajando)
+                roadOffset += speed * 2;
+                if (roadOffset > 40) roadOffset = 0;
+
+                // Movimiento de los bloques de opciones hacia abajo
+                obstacleY += speed;
+
+                // Colisión cuando los bloques llegan a la altura del coche
+                if (obstacleY >= carY - 25 && obstacleY <= carY + 35) {
+                  let winningLane = currentCh.opts.indexOf(currentCh.correct);
+
+                  if (currentLane === winningLane) {
+                    // ¡Acierto!
+                    score += 200;
+                    lap++;
+                    if (lap > 7) {
+                      alert("🏆 ¡VICTORIA! ¡Has completado las 7 vueltas del Gran Premio!");
+                      lap = 1; score = 0; lives = 3;
+                    } else {
+                      currentCh = challenges[lap - 1];
+                    }
+                    resetObstacles();
+                  } else {
+                    // ¡Fallo / Crash!
+                    lives--;
+                    if (lives <= 0) {
+                      alert("💥 ¡GAME OVER! Te has estrellado contra el muro incorrecto.");
+                      lives = 3; lap = 1; score = 0;
+                      currentCh = challenges[0];
+                    }
+                    resetObstacles();
+                  }
+                  updateUI();
+                }
+              }
+
+              function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 1. Dibujar Asfalto de la carretera
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(15, 0, 420, 350);
+
+                // 2. Bordes de la pista (líneas rojas y blancas)
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(15, 0, 8, 350);
+                ctx.fillRect(427, 0, 8, 350);
+
+                // 3. Líneas divisorias de los 5 carriles en movimiento
+                ctx.strokeStyle = "#94a3b8";
+                ctx.lineWidth = 3;
+                ctx.setLineDash([20, 20]);
+                ctx.lineDashOffset = -roadOffset;
+                for(let i=1; i<5; i++) {
+                  ctx.beginPath();
+                  ctx.moveTo(15 + i*84, 0);
+                  ctx.lineTo(15 + i*84, 350);
+                  ctx.stroke();
+                }
+                ctx.setLineDash([]);
+
+                // 4. Dibujar los bloques de números en cada carril bajando
+                for(let i=0; i<5; i++) {
+                  let val = currentCh.opts[i];
+                  let isCorrect = (val === currentCh.correct);
+
+                  ctx.fillStyle = isCorrect ? "#22c55e" : "#ef4444";
+                  ctx.fillRect(lanes[i] - 32, obstacleY, 64, 45);
+                  ctx.strokeStyle = "#ffffff";
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(lanes[i] - 32, obstacleY, 64, 45);
+
+                  ctx.fillStyle = "#ffffff";
+                  ctx.font = "bold 20px sans-serif";
+                  ctx.fillText(val, lanes[i] - 10, obstacleY + 28);
+                }
+
+                // 5. Dibujar el coche de F1 del jugador
+                let carX = lanes[currentLane];
+                ctx.fillStyle = "#facc15";
+                ctx.fillRect(carX - 16, carY, 32, 55);
+                ctx.fillStyle = "#0f172a";
+                ctx.fillRect(carX - 10, carY + 15, 20, 20);
+                ctx.fillStyle = "#38bdf8";
+                ctx.fillRect(carX - 22, carY - 2, 44, 6);
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(carX - 20, carY + 48, 40, 8);
+              }
+
+              function loop() {
+                update();
+                draw();
+                requestAnimationFrame(loop);
+              }
+
+              updateUI();
+              loop();
+            </script>
+            </body>
+            </html>
+            """
+
+            st.components.v1.html(f1_canvas_game, height=500)
 
         # MUNDO 2: POLINOMIOS
         elif b == 2:
